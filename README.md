@@ -7,7 +7,7 @@ This directory contains Cloud Run Job validator containers. Each validator runs 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │ Cloud Run Service (Django)                                          │
-│                                                                      │
+│                                                                     │
 │ 1. Creates ValidationInputEnvelope                                  │
 │ 2. Uploads to GCS as input.json                                     │
 │ 3. Triggers Cloud Run Job via Cloud Tasks                           │
@@ -18,15 +18,20 @@ This directory contains Cloud Run Job validator containers. Each validator runs 
                               ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │ Cloud Run Job (Validator Container)                                 │
-│                                                                      │
+│                                                                     │
 │ 1. Downloads input.json from GCS                                    │
-│ 2. Deserializes to typed envelope (e.g., EnergyPlusInputEnvelope)  │
+│ 2. Deserializes to typed envelope (e.g., EnergyPlusInputEnvelope)   │
 │ 3. Runs validation/simulation                                       │
-│ 4. Creates typed output envelope (e.g., EnergyPlusOutputEnvelope)  │
+│ 4. Creates typed output envelope (e.g., EnergyPlusOutputEnvelope)   │
 │ 5. Uploads output.json to GCS                                       │
 │ 6. POSTs minimal callback to Django                                 │
 └─────────────────────────────────────────────────────────────────────┘
 ```
+
+Both sides use the same typed Pydantic envelopes from `sv_shared`: Django creates/parses
+inputs/outputs with these models, and validators do the same to keep the schema in lockstep.
+The Cloud Run worker passes the `input.json` URI inside the job payload; env/CLI overrides
+(`INPUT_URI`) are only for local/manual runs.
 
 ## Directory Structure
 
@@ -52,16 +57,16 @@ validators/
 
 Each validator container MUST:
 
-1. **Accept environment variables**:
-   - `INPUT_URI`: GCS URI to input.json (e.g., `gs://bucket/org_id/run_id/input.json`)
-   - Or accept input.json path as first command-line argument
+1. **Receive input location**:
+   - The Cloud Run worker includes the GCS URI to `input.json` in the job payload.
+   - For local/manual runs you can override by setting `INPUT_URI` or passing the path as the first CLI argument.
 
 2. **Download input envelope from GCS**:
    ```python
-   from validators.core.gcs_client import download_envelope
+   from validators.core.envelope_loader import load_input_envelope
    from sv_shared.energyplus.envelopes import EnergyPlusInputEnvelope
 
-   input_envelope = download_envelope(INPUT_URI, EnergyPlusInputEnvelope)
+   input_envelope = load_input_envelope(EnergyPlusInputEnvelope)
    ```
 
 3. **Run validation/simulation**:
@@ -99,6 +104,7 @@ Each validator container MUST:
 
    post_callback(
        callback_url=input_envelope.context.callback_url,
+       callback_token=input_envelope.context.callback_token,
        run_id=input_envelope.run_id,
        status=ValidationStatus.SUCCESS,
        result_uri=output_uri
@@ -106,9 +112,12 @@ Each validator container MUST:
    ```
    The callback client mints a Google-signed ID token from the job’s service account
    (audience = callback URL) so the private worker service can validate IAM
-   (`roles/run.invoker`). No JWT payload token is required.
+   (`roles/run.invoker`). The callback token remains in the payload for envelope schema compatibility.
 
 ## Dependencies
+
+`validators/core` holds local runtime helpers (GCS I/O, callbacks, envelope loading). Schema
+models live in `sv_shared` so Django and the validators stay in sync.
 
 All validators depend on `sv_shared`:
 
