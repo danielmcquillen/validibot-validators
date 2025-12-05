@@ -1,0 +1,139 @@
+# ==== Project metadata ====
+
+[project]
+name = "vb-validators"
+version = "0.1.0"
+description = "Validibot Cloud Run Job validator containers"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "Proprietary" }
+authors = [{ name = "Daniel McQuillen" }]
+
+# Core dependencies shared by all validators
+dependencies = [
+    "pydantic>=2.12.5",
+    "httpx>=0.28.1",
+    "google-cloud-storage>=3.6.0",
+    "google-auth>=2.43.0",
+    "requests>=2.32.0",
+    "sentry-sdk>=2.47.0",
+    "sv-shared @ git+https://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:x-oauth-basic@github.com/danielmcquillen/sv_shared.git@main",
+
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.1",
+    "pytest-mock>=3.15.1",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.8",
+    "mypy>=1.19.0",
+]
+
+# EnergyPlus validator dependencies (for local dev/testing)
+energyplus = [
+    # EnergyPlus-specific deps go here
+]
+
+# FMI validator dependencies (for local dev/testing)
+fmi = ["fmpy>=0.3.20"]
+
+# ==== Build system ====
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["shared", "energyplus"]
+
+# ==== pytest ====
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "energyplus/tests", "shared/tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_functions = ["test_*"]
+addopts = ["-v", "--tb=short", "--strict-markers"]
+markers = [
+    "unit: Unit tests (no external dependencies)",
+    "integration: Integration tests (may require Docker/containers)",
+    "slow: Slow tests (skipped by default)",
+]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+# ==== Coverage ====
+
+[tool.coverage.run]
+source = ["shared", "energyplus"]
+omit = ["*/tests/*", "*/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
+
+# ==== Ruff ====
+
+[tool.ruff]
+target-version = "py312"
+line-length = 99
+src = ["shared", "energyplus"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "ARG", # flake8-unused-arguments
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "PTH", # flake8-use-pathlib
+    "ERA", # eradicate (commented-out code)
+    "RUF", # Ruff-specific rules
+]
+ignore = [
+    "E501",   # Line too long (handled by formatter)
+    "B008",   # Do not perform function calls in argument defaults
+    "ARG001", # Unused function argument (common in interfaces)
+    "ARG002", # Unused method argument
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["shared", "energyplus", "sv_shared"]
+force-single-line = false
+lines-after-imports = 2
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "ARG",  # Unused arguments OK in tests (fixtures)
+    "S101", # Assert OK in tests
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+# ==== mypy ====
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+check_untyped_defs = true
+disallow_untyped_defs = false
+exclude = ["tests/", "build/", "dist/"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
