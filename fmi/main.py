@@ -12,10 +12,10 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from validators.shared.callback_client import post_callback
-from validators.shared.envelope_loader import get_output_uri, load_input_envelope
-from validators.shared.error_reporting import report_fatal
-from validators.shared.gcs_client import upload_directory, upload_envelope
+from validators.core.callback_client import post_callback
+from validators.core.envelope_loader import get_output_uri, load_input_envelope
+from validators.core.error_reporting import report_fatal
+from validators.core.gcs_client import upload_directory, upload_envelope
 
 from .runner import run_fmi_simulation
 from sv_shared.fmi.envelopes import FMIInputEnvelope, FMIOutputEnvelope

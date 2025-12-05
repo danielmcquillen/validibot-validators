@@ -32,7 +32,7 @@ This directory contains Cloud Run Job validator containers. Each validator runs 
 
 ```
 validators/
-├── shared/                   # Shared utilities for all validators
+├── core/                     # Shared utilities for all validators
 │   ├── gcs_client.py        # GCS download/upload helpers
 │   ├── callback_client.py   # HTTP callback utilities
 │   └── envelope_loader.py   # Envelope serialization helpers
@@ -58,7 +58,7 @@ Each validator container MUST:
 
 2. **Download input envelope from GCS**:
    ```python
-   from validators.shared.gcs_client import download_envelope
+   from validators.core.gcs_client import download_envelope
    from sv_shared.energyplus.envelopes import EnergyPlusInputEnvelope
 
    input_envelope = download_envelope(INPUT_URI, EnergyPlusInputEnvelope)
@@ -87,7 +87,7 @@ Each validator container MUST:
 
 5. **Upload output envelope to GCS**:
    ```python
-   from validators.shared.gcs_client import upload_envelope
+   from validators.core.gcs_client import upload_envelope
 
    output_uri = f"{input_envelope.context.execution_bundle_uri}/output.json"
    upload_envelope(output_envelope, output_uri)
@@ -95,11 +95,10 @@ Each validator container MUST:
 
 6. **POST callback to Django**:
    ```python
-   from validators.shared.callback_client import post_callback
+   from validators.core.callback_client import post_callback
 
    post_callback(
        callback_url=input_envelope.context.callback_url,
-       callback_token=input_envelope.context.callback_token,
        run_id=input_envelope.run_id,
        status=ValidationStatus.SUCCESS,
        result_uri=output_uri
@@ -107,8 +106,7 @@ Each validator container MUST:
    ```
    The callback client mints a Google-signed ID token from the job’s service account
    (audience = callback URL) so the private worker service can validate IAM
-   (`roles/run.invoker`). The callback token remains in the payload for envelope
-   schema compatibility.
+   (`roles/run.invoker`). No JWT payload token is required.
 
 ## Dependencies
 

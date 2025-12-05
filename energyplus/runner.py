@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from validators.shared.gcs_client import download_file
+from validators.core.gcs_client import download_file
 
 from sv_shared.energyplus.envelopes import EnergyPlusOutputs
 from sv_shared.energyplus.models import (

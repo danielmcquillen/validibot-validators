@@ -56,7 +56,6 @@ def test_feedthrough_fmu_echoes_input(monkeypatch, tmp_path) -> None:
         ),
         context=ExecutionContext(
             callback_url="http://example.com",
-            callback_token="tok",
             execution_bundle_uri=str(tmp_path),
         ),
     )

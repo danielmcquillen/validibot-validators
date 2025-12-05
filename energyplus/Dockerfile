@@ -43,8 +43,8 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy shared utilities
-COPY ../shared /app/validators/shared
+# Copy core utilities
+COPY ../core /app/validators/core
 
 # Copy validator code
 COPY . /app/validators/energyplus

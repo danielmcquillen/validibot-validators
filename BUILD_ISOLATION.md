@@ -67,13 +67,13 @@ COPY . /app/  # <-- This copies everything EXCEPT validators/ (due to .dockerign
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
-COPY ../shared /app/validators/shared  # Shared utilities
+COPY ../core /app/validators/core      # Core utilities
 COPY . /app/validators/energyplus      # Only this validator
 ```
 
 **Includes:**
 - Only the specific validator (`validators/energyplus/`)
-- Shared validator utilities (`validators/shared/`)
+- Core validator utilities (`validators/core/`)
 - **NOT Django code**
 - **NOT other validators**
 

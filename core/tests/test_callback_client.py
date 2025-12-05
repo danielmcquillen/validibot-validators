@@ -5,7 +5,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from validators.shared import callback_client
+from validators.core import callback_client
 from sv_shared.validations.envelopes import ValidationStatus
 
 
@@ -28,7 +28,7 @@ def test_post_callback_retries_and_succeeds(monkeypatch):
     calls = {"count": 0}
 
     monkeypatch.setattr(
-        "validators.shared.callback_client.id_token.fetch_id_token",
+        "validators.core.callback_client.id_token.fetch_id_token",
         lambda *_args, **_kwargs: "fake-id-token",
     )
 
@@ -56,7 +56,7 @@ def test_post_callback_retries_and_succeeds(monkeypatch):
 
     resp = callback_client.post_callback(
         callback_url="http://example.com",
-        callback_token="tok",
+        callback_token="fake-token",
         run_id="1",
         status=ValidationStatus.SUCCESS,
         result_uri="gs://bucket/run/output.json",

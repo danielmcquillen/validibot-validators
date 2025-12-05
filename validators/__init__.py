@@ -1,7 +1,7 @@
 """
-Namespace package shim so imports like `validators.shared` work both locally and in containers.
+Namespace package shim so imports like `validators.core` work both locally and in containers.
 
-We keep source under vb_validators_dev/{shared,energyplus,fmi} and extend __path__
+We keep source under vb_validators_dev/{core,energyplus,fmi} and extend __path__
 to include that root so submodules can be resolved without moving files.
 """
 

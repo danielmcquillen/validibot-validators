@@ -52,7 +52,6 @@ This container:
   },
   "context": {
     "callback_url": "https://validibot.example.com/api/v1/validation-callbacks/",
-    "callback_token": "eyJ...",
     "execution_bundle_uri": "gs://bucket/org_id/run_id/",
     "timeout_seconds": 3600
   }

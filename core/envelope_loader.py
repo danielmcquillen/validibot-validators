@@ -12,7 +12,7 @@ import os
 import sys
 
 from pydantic import BaseModel
-from validators.shared.gcs_client import download_envelope
+from validators.core.gcs_client import download_envelope
 
 
 logger = logging.getLogger(__name__)

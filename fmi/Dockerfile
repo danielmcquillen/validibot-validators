@@ -11,7 +11,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ../shared /app/validators/shared
+COPY ../core /app/validators/core
 COPY . /app/validators/fmi
 
 WORKDIR /app/validators/fmi

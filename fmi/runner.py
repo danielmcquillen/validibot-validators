@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 
 from fmpy import read_model_description, simulate_fmu
 
-from validators.shared.gcs_client import download_file
+from validators.core.gcs_client import download_file
 from sv_shared.fmi.envelopes import FMIOutputs
 
 if TYPE_CHECKING:

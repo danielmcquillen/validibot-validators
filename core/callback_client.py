@@ -36,7 +36,7 @@ def post_callback(
 
     Args:
         callback_url: Django callback endpoint URL
-        callback_token: JWT token for authentication
+        callback_token: Validation callback token (passed through for schema compatibility)
         run_id: Validation run ID
         status: Validation status (SUCCESS, FAILED_VALIDATION, etc.)
         result_uri: GCS URI to output.json
@@ -53,8 +53,8 @@ def post_callback(
     logger.info("POSTing callback for run_id=%s to %s", run_id, callback_url)
 
     callback = ValidationCallback(
-        callback_token=callback_token,
         run_id=run_id,
+        callback_token=callback_token,
         status=status,
         result_uri=result_uri,
     )
@@ -62,7 +62,8 @@ def post_callback(
     def _build_headers() -> dict[str, str]:
         """
         Prefer an ID token minted from the runtime service account (Cloud Run Job).
-        Fall back to the provided callback token if ID token acquisition fails.
+        Continue without Authorization header when running locally and metadata
+        server access is unavailable.
         """
         headers = {
             "Content-Type": "application/json",
@@ -72,8 +73,10 @@ def post_callback(
             token = id_token.fetch_id_token(GoogleAuthRequest(), audience)
             headers["Authorization"] = f"Bearer {token}"
         except Exception:
-            logger.exception("Failed to fetch ID token; falling back to callback token")
-            headers["Authorization"] = f"Bearer {callback_token}"
+            logger.warning(
+                "Failed to fetch ID token; sending callback without Authorization header",
+                exc_info=True,
+            )
         return headers
 
     last_exc: Exception | None = None
