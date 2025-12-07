@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from sv_shared.energyplus.envelopes import EnergyPlusOutputs
-from sv_shared.energyplus.models import (
+from vb_shared.energyplus.envelopes import EnergyPlusOutputs
+from vb_shared.energyplus.models import (
     EnergyPlusSimulationLogs,
     EnergyPlusSimulationMetrics,
     EnergyPlusSimulationOutputs,
 )
-from sv_shared.validations.envelopes import ValidationArtifact
+from vb_shared.validations.envelopes import ValidationArtifact
 
 from validators.energyplus.main import (
     _infer_artifact_type,

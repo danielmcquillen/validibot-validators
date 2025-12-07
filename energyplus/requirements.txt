@@ -2,11 +2,7 @@
 pydantic>=2.8.0
 httpx>=0.27.0
 google-cloud-storage>=2.10.0
+google-auth>=2.0.0
 
-# sv_shared from GitHub (update branch/tag as needed)
-# For local development, use: pip install -e ../../sv_shared
-sv-shared @ git+https://github.com/YOUR_ORG/validibot.git@main#subdirectory=sv_shared
-
-# Testing
-pytest>=8.0.0
-pytest-mock>=3.12.0
+# vb_shared from GitHub
+vb-shared @ git+https://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:x-oauth-basic@github.com/danielmcquillen/vb_shared.git@main

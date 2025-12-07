@@ -15,8 +15,8 @@ from typing import TYPE_CHECKING
 
 from validators.core.gcs_client import download_file
 
-from sv_shared.energyplus.envelopes import EnergyPlusOutputs
-from sv_shared.energyplus.models import (
+from vb_shared.energyplus.envelopes import EnergyPlusOutputs
+from vb_shared.energyplus.models import (
     STDOUT_TAIL_CHARS,
     EnergyPlusSimulationLogs,
     EnergyPlusSimulationMetrics,
@@ -25,7 +25,7 @@ from sv_shared.energyplus.models import (
 
 
 if TYPE_CHECKING:
-    from sv_shared.energyplus.envelopes import EnergyPlusInputEnvelope
+    from vb_shared.energyplus.envelopes import EnergyPlusInputEnvelope
 
 logger = logging.getLogger(__name__)
 

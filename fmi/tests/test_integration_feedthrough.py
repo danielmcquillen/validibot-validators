@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pytest
 
-from sv_shared.fmi.envelopes import FMIInputEnvelope, FMIInputs, FMIOutputEnvelope
-from sv_shared.validations.envelopes import ExecutionContext, InputFileItem, SupportedMimeType
+from vb_shared.fmi.envelopes import FMIInputEnvelope, FMIInputs, FMIOutputEnvelope
+from vb_shared.validations.envelopes import ExecutionContext, InputFileItem, SupportedMimeType
 
 from validators.fmi import runner
 

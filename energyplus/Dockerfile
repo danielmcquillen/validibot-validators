@@ -1,4 +1,7 @@
 # Multi-stage build for EnergyPlus validator container
+#
+# Build context must be vb_validators_dev/ (not energyplus/)
+# Build with: docker build -f energyplus/Dockerfile -t ... .
 
 # =============================================================================
 # Stage 1: Build EnergyPlus
@@ -9,6 +12,7 @@ FROM ubuntu:22.04 AS energyplus-builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     wget \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install EnergyPlus 24.2.0
@@ -23,9 +27,10 @@ RUN wget -q https://github.com/NREL/EnergyPlus/releases/download/v24.2.0/EnergyP
 # =============================================================================
 FROM python:3.13-slim
 
-# Install runtime dependencies
+# Install runtime dependencies (git needed for pip install from GitHub)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy EnergyPlus from builder stage
@@ -38,16 +43,17 @@ ENV PATH="/opt/energyplus:${PATH}"
 WORKDIR /app
 
 # Copy requirements first (for layer caching)
-COPY requirements.txt .
+# Build context is vb_validators_dev/
+COPY energyplus/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy core utilities
-COPY ../core /app/validators/core
+# Copy core utilities (shared by all validators)
+COPY core /app/validators/core
 
 # Copy validator code
-COPY . /app/validators/energyplus
+COPY energyplus /app/validators/energyplus
 
 # Create working directory for EnergyPlus runs
 RUN mkdir -p /tmp/energyplus_run

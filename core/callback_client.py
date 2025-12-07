@@ -15,46 +15,59 @@ import httpx
 from google.auth.transport.requests import Request as GoogleAuthRequest
 from google.oauth2 import id_token
 
-from sv_shared.validations.envelopes import ValidationCallback, ValidationStatus
+from vb_shared.validations.envelopes import ValidationCallback, ValidationStatus
 
 
 logger = logging.getLogger(__name__)
 
 
 def post_callback(
-    callback_url: str,
-    callback_token: str,
+    callback_url: str | None,
     run_id: str,
     status: ValidationStatus,
     result_uri: str,
+    *,
+    skip_callback: bool = False,
     timeout_seconds: int = 30,
     max_attempts: int = 3,
     retry_delay_seconds: float = 1.0,
-) -> dict[str, Any]:
+) -> dict[str, Any] | None:
     """
     POST a validation completion callback to the Cloud Run Service.
 
     Args:
-        callback_url: Django callback endpoint URL
-        callback_token: Validation callback token (passed through for schema compatibility)
+        callback_url: Django callback endpoint URL (can be None if skip_callback=True)
         run_id: Validation run ID
         status: Validation status (SUCCESS, FAILED_VALIDATION, etc.)
         result_uri: GCS URI to output.json
+        skip_callback: If True, skip the callback POST (useful for testing)
         timeout_seconds: HTTP request timeout
         max_attempts: Retry attempts for transient failures
         retry_delay_seconds: Delay between retries
 
     Returns:
-        Response JSON from Django
+        Response JSON from Django, or None if skip_callback=True
 
     Raises:
         httpx.HTTPStatusError: If callback request fails
     """
+    if skip_callback:
+        logger.info(
+            "Skipping callback for run_id=%s (skip_callback=True)", run_id
+        )
+        return None
+
+    if not callback_url:
+        logger.warning(
+            "No callback_url provided for run_id=%s and skip_callback=False; skipping",
+            run_id,
+        )
+        return None
+
     logger.info("POSTing callback for run_id=%s to %s", run_id, callback_url)
 
     callback = ValidationCallback(
         run_id=run_id,
-        callback_token=callback_token,
         status=status,
         result_uri=result_uri,
     )

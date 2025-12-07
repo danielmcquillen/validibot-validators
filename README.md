@@ -28,7 +28,7 @@ This directory contains Cloud Run Job validator containers. Each validator runs 
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-Both sides use the same typed Pydantic envelopes from `sv_shared`: Django creates/parses
+Both sides use the same typed Pydantic envelopes from `vb_shared`: Django creates/parses
 inputs/outputs with these models, and validators do the same to keep the schema in lockstep.
 The Cloud Run worker passes the `input.json` URI inside the job payload; env/CLI overrides
 (`INPUT_URI`) are only for local/manual runs.
@@ -64,7 +64,7 @@ Each validator container MUST:
 2. **Download input envelope from GCS**:
    ```python
    from validators.core.envelope_loader import load_input_envelope
-   from sv_shared.energyplus.envelopes import EnergyPlusInputEnvelope
+   from vb_shared.energyplus.envelopes import EnergyPlusInputEnvelope
 
    input_envelope = load_input_envelope(EnergyPlusInputEnvelope)
    ```
@@ -76,8 +76,8 @@ Each validator container MUST:
 
 4. **Create output envelope**:
    ```python
-   from sv_shared.energyplus.envelopes import EnergyPlusOutputEnvelope
-   from sv_shared.validations.envelopes import ValidationStatus
+   from vb_shared.energyplus.envelopes import EnergyPlusOutputEnvelope
+   from vb_shared.validations.envelopes import ValidationStatus
 
    output_envelope = EnergyPlusOutputEnvelope(
        run_id=input_envelope.run_id,
@@ -117,13 +117,13 @@ Each validator container MUST:
 ## Dependencies
 
 `validators/core` holds local runtime helpers (GCS I/O, callbacks, envelope loading). Schema
-models live in `sv_shared` so Django and the validators stay in sync.
+models live in `vb_shared` so Django and the validators stay in sync.
 
-All validators depend on `sv_shared`:
+All validators depend on `vb_shared`:
 
 ```toml
 # In each validator's requirements.txt or pyproject.toml
-sv-shared @ git+https://github.com/YOUR_ORG/validibot.git@main#subdirectory=sv_shared
+sv-shared @ git+https://github.com/YOUR_ORG/validibot.git@main#subdirectory=vb_shared
 ```
 
 This ensures validators and Django use identical envelope schemas.
@@ -170,7 +170,7 @@ pytest tests/
 1. Copy `validators/energyplus/` as a template
 2. Update `Dockerfile` with domain-specific dependencies
 3. Implement `runner.py` with validation logic
-4. Create typed envelope subclasses in `sv_shared/{domain}/envelopes.py`
+4. Create typed envelope subclasses in `vb_shared/{domain}/envelopes.py`
 5. Update `main.py` to use your typed envelopes
 6. Write tests
 7. Deploy as new Cloud Run Job

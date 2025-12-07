@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from validators.core import callback_client
-from sv_shared.validations.envelopes import ValidationStatus
+from vb_shared.validations.envelopes import ValidationStatus
 
 
 class _FakeResponse:

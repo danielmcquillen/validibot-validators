@@ -22,12 +22,12 @@ from validators.core.error_reporting import report_fatal
 from validators.core.gcs_client import upload_directory, upload_envelope
 
 from .runner import run_energyplus_simulation
-from sv_shared.energyplus.envelopes import (
+from vb_shared.energyplus.envelopes import (
     EnergyPlusInputEnvelope,
     EnergyPlusOutputEnvelope,
     EnergyPlusOutputs,
 )
-from sv_shared.validations.envelopes import (
+from vb_shared.validations.envelopes import (
     RawOutputs,
     ValidationArtifact,
     ValidationMessage,
@@ -110,14 +110,18 @@ def main() -> int:
         logger.info("Uploading output envelope to %s", output_uri)
         upload_envelope(output_envelope, output_uri)
 
-        # POST callback to Django
+        # POST callback to Django (unless skip_callback is set)
         logger.info("Sending callback to Django...")
         post_callback(
-            callback_url=str(input_envelope.context.callback_url),
-            callback_token=input_envelope.context.callback_token,
+            callback_url=(
+                str(input_envelope.context.callback_url)
+                if input_envelope.context.callback_url
+                else None
+            ),
             run_id=input_envelope.run_id,
             status=status,
             result_uri=output_uri,
+            skip_callback=input_envelope.context.skip_callback,
         )
 
         logger.info("Validation complete (status=%s)", status.value)
@@ -164,11 +168,15 @@ def main() -> int:
                 upload_envelope(failure_envelope, output_uri)
 
                 post_callback(
-                    callback_url=str(input_envelope.context.callback_url),
-                    callback_token=input_envelope.context.callback_token,
+                    callback_url=(
+                        str(input_envelope.context.callback_url)
+                        if input_envelope.context.callback_url
+                        else None
+                    ),
                     run_id=input_envelope.run_id,
                     status=ValidationStatus.FAILED_RUNTIME,
                     result_uri=output_uri,
+                    skip_callback=input_envelope.context.skip_callback,
                 )
         except Exception:
             logger.exception("Failed to send failure callback")
