@@ -13,9 +13,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from fmpy import read_model_description, simulate_fmu
-
 from validators.core.gcs_client import download_file
+
 from vb_shared.fmi.envelopes import FMIOutputs
+
 
 if TYPE_CHECKING:
     from vb_shared.fmi.envelopes import FMIInputEnvelope
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def run_fmi_simulation(input_envelope: "FMIInputEnvelope") -> tuple[FMIOutputs, Path]:
+def run_fmi_simulation(input_envelope: FMIInputEnvelope) -> tuple[FMIOutputs, Path]:
     """
     Execute an FMU using fmpy and return FMIOutputs plus the working directory.
     """

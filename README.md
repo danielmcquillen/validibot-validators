@@ -58,10 +58,12 @@ validators/
 Each validator container MUST:
 
 1. **Receive input location**:
+
    - The Cloud Run worker includes the GCS URI to `input.json` in the job payload.
    - For local/manual runs you can override by setting `INPUT_URI` or passing the path as the first CLI argument.
 
 2. **Download input envelope from GCS**:
+
    ```python
    from validators.core.envelope_loader import load_input_envelope
    from vb_shared.energyplus.envelopes import EnergyPlusInputEnvelope
@@ -70,11 +72,13 @@ Each validator container MUST:
    ```
 
 3. **Run validation/simulation**:
+
    - Use typed configuration from `input_envelope.inputs`
    - Download input files from GCS URIs in `input_envelope.input_files`
    - Execute domain-specific logic (EnergyPlus sim, FMU probe, XML validation, etc.)
 
 4. **Create output envelope**:
+
    ```python
    from vb_shared.energyplus.envelopes import EnergyPlusOutputEnvelope
    from vb_shared.validations.envelopes import ValidationStatus
@@ -91,6 +95,7 @@ Each validator container MUST:
    ```
 
 5. **Upload output envelope to GCS**:
+
    ```python
    from validators.core.gcs_client import upload_envelope
 
@@ -99,6 +104,7 @@ Each validator container MUST:
    ```
 
 6. **POST callback to Django**:
+
    ```python
    from validators.core.callback_client import post_callback
 
@@ -110,6 +116,7 @@ Each validator container MUST:
        result_uri=output_uri
    )
    ```
+
    The callback client mints a Google-signed ID token from the job’s service account
    (audience = callback URL) so the private worker service can validate IAM
    (`roles/run.invoker`). The callback token remains in the payload for envelope schema compatibility.
@@ -123,7 +130,7 @@ All validators depend on `vb_shared`:
 
 ```toml
 # In each validator's requirements.txt or pyproject.toml
-sv-shared @ git+https://github.com/YOUR_ORG/validibot.git@main#subdirectory=vb_shared
+vb-shared @ git+https://github.com/YOUR_ORG/validibot.git@main#subdirectory=vb_shared
 ```
 
 This ensures validators and Django use identical envelope schemas.
@@ -160,6 +167,7 @@ Each validator should include:
 3. **Example inputs**: Sample input.json files for manual testing
 
 Run tests:
+
 ```bash
 cd validators/energyplus
 pytest tests/

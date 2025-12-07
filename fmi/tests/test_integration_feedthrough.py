@@ -9,24 +9,21 @@ the known feedthrough variable.
 
 from __future__ import annotations
 
-import shutil
 import platform
+import shutil
 from pathlib import Path
 
 import pytest
+from validators.fmi import runner
 
 from vb_shared.fmi.envelopes import FMIInputEnvelope, FMIInputs, FMIOutputEnvelope
 from vb_shared.validations.envelopes import ExecutionContext, InputFileItem, SupportedMimeType
-
-from validators.fmi import runner
 
 
 @pytest.mark.integration
 def test_feedthrough_fmu_echoes_input(monkeypatch, tmp_path) -> None:
     """Run Feedthrough.fmu and assert Int32_output matches Int32_input."""
-    if platform.system().lower() == "darwin" and platform.machine().lower().startswith(
-        "arm"
-    ):
+    if platform.system().lower() == "darwin" and platform.machine().lower().startswith("arm"):
         pytest.skip("Feedthrough.fmu fixture is x86_64-only; skip on Apple Silicon.")
 
     fixture = Path(__file__).parent / "assets" / "Feedthrough.fmu"

@@ -15,12 +15,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Download and install EnergyPlus 24.2.0
+# Download and install EnergyPlus 25.2.0 (latest as of Dec 2024)
 # Update this URL for different EnergyPlus versions
-RUN wget -q https://github.com/NREL/EnergyPlus/releases/download/v24.2.0/EnergyPlus-24.2.0-9f1b36b00b-Linux-Ubuntu22.04-x86_64.tar.gz \
-    && tar -xzf EnergyPlus-24.2.0-9f1b36b00b-Linux-Ubuntu22.04-x86_64.tar.gz \
-    && mv EnergyPlus-24.2.0-9f1b36b00b-Linux-Ubuntu22.04-x86_64 /opt/energyplus \
-    && rm EnergyPlus-24.2.0-9f1b36b00b-Linux-Ubuntu22.04-x86_64.tar.gz
+# Check releases at: https://github.com/NREL/EnergyPlus/releases
+RUN wget -q https://github.com/NREL/EnergyPlus/releases/download/v25.2.0/EnergyPlus-25.2.0-cf7368216c-Linux-Ubuntu22.04-x86_64.tar.gz \
+    && tar -xzf EnergyPlus-25.2.0-cf7368216c-Linux-Ubuntu22.04-x86_64.tar.gz \
+    && mv EnergyPlus-25.2.0-cf7368216c-Linux-Ubuntu22.04-x86_64 /opt/energyplus \
+    && rm EnergyPlus-25.2.0-cf7368216c-Linux-Ubuntu22.04-x86_64.tar.gz
 
 # =============================================================================
 # Stage 2: Runtime container

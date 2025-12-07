@@ -21,7 +21,6 @@ from validators.core.envelope_loader import get_output_uri, load_input_envelope
 from validators.core.error_reporting import report_fatal
 from validators.core.gcs_client import upload_directory, upload_envelope
 
-from .runner import run_energyplus_simulation
 from vb_shared.energyplus.envelopes import (
     EnergyPlusInputEnvelope,
     EnergyPlusOutputEnvelope,
@@ -29,11 +28,13 @@ from vb_shared.energyplus.envelopes import (
 )
 from vb_shared.validations.envelopes import (
     RawOutputs,
+    Severity,
     ValidationArtifact,
     ValidationMessage,
     ValidationStatus,
-    Severity,
 )
+
+from .runner import run_energyplus_simulation
 
 
 # Configure logging

@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
+import sqlite3
 from pathlib import Path
+
+from validators.energyplus import runner
+from validators.energyplus.main import (
+    _infer_artifact_type,
+    _rewrite_output_paths,
+)
 
 from vb_shared.energyplus.envelopes import EnergyPlusOutputs
 from vb_shared.energyplus.models import (
@@ -11,13 +18,6 @@ from vb_shared.energyplus.models import (
     EnergyPlusSimulationOutputs,
 )
 from vb_shared.validations.envelopes import ValidationArtifact
-
-from validators.energyplus.main import (
-    _infer_artifact_type,
-    _rewrite_output_paths,
-)
-from validators.energyplus import runner
-import sqlite3
 
 
 def test_infer_artifact_type() -> None:
@@ -85,8 +85,20 @@ def test_extract_metrics_reads_tabular_data(tmp_path) -> None:
         """
     )
     rows = [
-        ("AnnualBuildingUtilityPerformanceSummary", "End Uses", "Total End Uses", "Electricity [kWh]", "100"),
-        ("AnnualBuildingUtilityPerformanceSummary", "End Uses", "Total End Uses", "Natural Gas [kWh]", "50"),
+        (
+            "AnnualBuildingUtilityPerformanceSummary",
+            "End Uses",
+            "Total End Uses",
+            "Electricity [kWh]",
+            "100",
+        ),
+        (
+            "AnnualBuildingUtilityPerformanceSummary",
+            "End Uses",
+            "Total End Uses",
+            "Natural Gas [kWh]",
+            "50",
+        ),
         ("Entire Facility", "Building Area", "Total Building Area", "Area", "25"),
     ]
     cur.executemany(

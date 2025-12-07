@@ -9,5 +9,6 @@ from __future__ import annotations
 
 import pathlib
 
+
 # Allow `validators.<module>` to resolve to sibling directories under vb_validators_dev
 __path__.append(str(pathlib.Path(__file__).resolve().parent.parent))  # type: ignore[name-defined]
