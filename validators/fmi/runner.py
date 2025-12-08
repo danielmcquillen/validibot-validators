@@ -13,8 +13,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from fmpy import read_model_description, simulate_fmu
-from validators.core.gcs_client import download_file
 
+from validators.core.gcs_client import download_file
 from vb_shared.fmi.envelopes import FMIOutputs
 
 

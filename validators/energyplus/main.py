@@ -13,26 +13,28 @@ from __future__ import annotations
 
 import logging
 import sys
-from datetime import UTC
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 from validators.core.callback_client import post_callback
-from validators.core.envelope_loader import get_output_uri
-from validators.core.envelope_loader import load_input_envelope
+from validators.core.envelope_loader import get_output_uri, load_input_envelope
 from validators.core.error_reporting import report_fatal
-from validators.core.gcs_client import upload_directory
-from validators.core.gcs_client import upload_envelope
-from vb_shared.energyplus.envelopes import EnergyPlusInputEnvelope
-from vb_shared.energyplus.envelopes import EnergyPlusOutputEnvelope
-from vb_shared.energyplus.envelopes import EnergyPlusOutputs
-from vb_shared.validations.envelopes import RawOutputs
-from vb_shared.validations.envelopes import Severity
-from vb_shared.validations.envelopes import ValidationArtifact
-from vb_shared.validations.envelopes import ValidationMessage
-from vb_shared.validations.envelopes import ValidationStatus
+from validators.core.gcs_client import upload_directory, upload_envelope
+from vb_shared.energyplus.envelopes import (
+    EnergyPlusInputEnvelope,
+    EnergyPlusOutputEnvelope,
+    EnergyPlusOutputs,
+)
+from vb_shared.validations.envelopes import (
+    RawOutputs,
+    Severity,
+    ValidationArtifact,
+    ValidationMessage,
+    ValidationStatus,
+)
 
 from .runner import run_energyplus_simulation
+
 
 # Configure logging
 logging.basicConfig(

@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from validators.core.gcs_client import download_file
-
 from vb_shared.energyplus.envelopes import EnergyPlusOutputs
 from vb_shared.energyplus.models import (
     STDOUT_TAIL_CHARS,

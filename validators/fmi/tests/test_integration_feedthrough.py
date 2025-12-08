@@ -14,13 +14,10 @@ import shutil
 from pathlib import Path
 
 import pytest
+
 from validators.fmi import runner
-from vb_shared.fmi.envelopes import FMIInputEnvelope
-from vb_shared.fmi.envelopes import FMIInputs
-from vb_shared.fmi.envelopes import FMIOutputEnvelope
-from vb_shared.validations.envelopes import ExecutionContext
-from vb_shared.validations.envelopes import InputFileItem
-from vb_shared.validations.envelopes import SupportedMimeType
+from vb_shared.fmi.envelopes import FMIInputEnvelope, FMIInputs, FMIOutputEnvelope
+from vb_shared.validations.envelopes import ExecutionContext, InputFileItem, SupportedMimeType
 
 
 @pytest.mark.integration

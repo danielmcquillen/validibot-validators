@@ -10,7 +10,6 @@ from validators.energyplus.main import (
     _infer_artifact_type,
     _rewrite_output_paths,
 )
-
 from vb_shared.energyplus.envelopes import EnergyPlusOutputs
 from vb_shared.energyplus.models import (
     EnergyPlusSimulationLogs,

@@ -16,7 +16,6 @@ from validators.core.callback_client import post_callback
 from validators.core.envelope_loader import get_output_uri, load_input_envelope
 from validators.core.error_reporting import report_fatal
 from validators.core.gcs_client import upload_directory, upload_envelope
-
 from vb_shared.fmi.envelopes import FMIInputEnvelope, FMIOutputEnvelope
 from vb_shared.validations.envelopes import (
     RawOutputs,

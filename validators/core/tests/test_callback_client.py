@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import httpx
-from validators.core import callback_client
 
+from validators.core import callback_client
 from vb_shared.validations.envelopes import ValidationStatus
 
 
