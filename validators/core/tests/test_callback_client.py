@@ -55,7 +55,6 @@ def test_post_callback_retries_and_succeeds(monkeypatch):
 
     resp = callback_client.post_callback(
         callback_url="http://example.com",
-        callback_token="fake-token",
         run_id="1",
         status=ValidationStatus.SUCCESS,
         result_uri="gs://bucket/run/output.json",

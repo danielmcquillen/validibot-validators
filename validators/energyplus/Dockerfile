@@ -28,9 +28,14 @@ RUN wget -q https://github.com/NREL/EnergyPlus/releases/download/v25.2.0/EnergyP
 # =============================================================================
 FROM python:3.13-slim
 
-# Install runtime dependencies (git needed for pip install from GitHub)
+# Install runtime dependencies
+# - libgomp1: OpenMP runtime for parallel processing
+# - libx11-6, libxext6: X11 libs required by EnergyPlus binary
+# - git: needed for pip install from GitHub
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
+    libx11-6 \
+    libxext6 \
     git \
     && rm -rf /var/lib/apt/lists/*
 

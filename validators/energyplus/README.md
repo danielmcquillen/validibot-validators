@@ -126,33 +126,25 @@ This container:
 
 ## Building and Deploying
 
-### Build Container
+Use the justfile commands from the `vb_validators` root:
 
 ```bash
-cd validators/energyplus
-docker build -t gcr.io/PROJECT_ID/validibot-validator-energyplus:latest .
-docker push gcr.io/PROJECT_ID/validibot-validator-energyplus:latest
-```
+# Build container locally
+just build energyplus
 
-### Deploy Cloud Run Job
+# Build and deploy to Cloud Run
+just deploy energyplus
 
-```bash
-gcloud run jobs create validibot-validator-energyplus \
-  --image gcr.io/PROJECT_ID/validibot-validator-energyplus:latest \
-  --region us-central1 \
-  --memory 4Gi \
-  --cpu 2 \
-  --max-retries 0 \
-  --task-timeout 3600 \
-  --service-account validator-runner@PROJECT_ID.iam.gserviceaccount.com
+# View logs
+just logs energyplus
 ```
 
 ### Execute Job (for testing)
 
 ```bash
 gcloud run jobs execute validibot-validator-energyplus \
-  --region us-central1 \
-  --env-vars INPUT_URI=gs://bucket/test/input.json
+  --region australia-southeast1 \
+  --update-env-vars INPUT_URI=gs://bucket/test/input.json
 ```
 
 ## Local Development
@@ -160,28 +152,18 @@ gcloud run jobs execute validibot-validator-energyplus \
 ### Install Dependencies
 
 ```bash
-pip install -r requirements.txt
-```
-
-### Run Locally
-
-```bash
-# Set input URI
-export INPUT_URI=gs://your-bucket/test-run/input.json
-
-# Run validator
-python main.py
+uv sync
 ```
 
 ### Run Tests
 
 ```bash
-pytest tests/
+just test-validator energyplus
 ```
 
 ## EnergyPlus Version
 
-This container uses EnergyPlus 24.2.0. To update:
+This container uses EnergyPlus 25.2.0. To update:
 
 1. Modify `Dockerfile` to install different version
 2. Update `validator.version` in Django database

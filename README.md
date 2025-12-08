@@ -36,21 +36,28 @@ The Cloud Run worker passes the `input.json` URI inside the job payload; env/CLI
 ## Directory Structure
 
 ```
-validators/
-├── core/                     # Shared utilities for all validators
-│   ├── gcs_client.py        # GCS download/upload helpers
-│   ├── callback_client.py   # HTTP callback utilities
-│   └── envelope_loader.py   # Envelope serialization helpers
-│
-├── energyplus/              # EnergyPlus validator container
-│   ├── Dockerfile
-│   ├── main.py              # Entrypoint for Cloud Run Job
-│   ├── runner.py            # EnergyPlus execution logic
-│   ├── requirements.txt
-│   ├── README.md
-│   └── tests/
-│
-└── (future validators: fmi/, xml/, pdf/, etc.)
+vb_validators/
+├── justfile                  # Build/deploy commands
+├── pyproject.toml           # Python project config
+└── validators/
+    ├── core/                # Shared utilities for all validators
+    │   ├── gcs_client.py    # GCS download/upload helpers
+    │   ├── callback_client.py   # HTTP callback utilities
+    │   └── envelope_loader.py   # Envelope serialization helpers
+    │
+    ├── energyplus/          # EnergyPlus validator container
+    │   ├── Dockerfile
+    │   ├── main.py          # Entrypoint for Cloud Run Job
+    │   ├── runner.py        # EnergyPlus execution logic
+    │   ├── requirements.txt
+    │   └── tests/
+    │
+    └── fmi/                 # FMI/FMU simulation validator
+        ├── Dockerfile
+        ├── main.py
+        ├── runner.py
+        ├── requirements.txt
+        └── tests/
 ```
 
 ## Validator Container Contract
@@ -110,16 +117,15 @@ Each validator container MUST:
 
    post_callback(
        callback_url=input_envelope.context.callback_url,
-       callback_token=input_envelope.context.callback_token,
        run_id=input_envelope.run_id,
        status=ValidationStatus.SUCCESS,
        result_uri=output_uri
    )
    ```
 
-   The callback client mints a Google-signed ID token from the job’s service account
+   The callback client mints a Google-signed ID token from the job's service account
    (audience = callback URL) so the private worker service can validate IAM
-   (`roles/run.invoker`). The callback token remains in the payload for envelope schema compatibility.
+   (`roles/run.invoker`).
 
 ## Dependencies
 
@@ -137,25 +143,20 @@ This ensures validators and Django use identical envelope schemas.
 
 ## Deployment
 
-Each validator is deployed as a separate Cloud Run Job:
+Each validator is deployed as a separate Cloud Run Job. Use the justfile commands:
 
 ```bash
-# Build and push container
-gcloud builds submit --tag gcr.io/PROJECT/validibot-validator-energyplus validators/energyplus
+# Build a specific validator
+just build energyplus
 
-# Create or update Cloud Run Job
-gcloud run jobs create validibot-validator-energyplus \
-  --image gcr.io/PROJECT/validibot-validator-energyplus \
-  --region us-central1 \
-  --memory 4Gi \
-  --cpu 2 \
-  --max-retries 0 \
-  --task-timeout 3600
+# Build and deploy a validator
+just deploy energyplus
 
-# Attach metadata (version/env)
-gcloud run jobs update validibot-validator-energyplus \
-  --labels validator=energyplus,version=$GIT_SHA \
-  --set-env-vars VALIDATOR_VERSION=$GIT_SHA
+# Build all validators
+just build-all
+
+# List available commands
+just
 ```
 
 ## Testing
@@ -169,8 +170,14 @@ Each validator should include:
 Run tests:
 
 ```bash
-cd validators/energyplus
-pytest tests/
+# Run all tests
+just test
+
+# Run tests for a specific validator
+just test-validator energyplus
+
+# Run with pytest options
+just test -k "test_runner"
 ```
 
 ## Adding a New Validator
