@@ -1,0 +1,25 @@
+# Cloud Run Job image for FMI validator
+#
+# Build context must be vb_validators/ (not validators/fmi/)
+# Build with: docker build -f validators/fmi/Dockerfile -t ... .
+
+FROM python:3.13-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Add /app to PYTHONPATH so imports like "from validators.core.x" work
+ENV PYTHONPATH="/app:${PYTHONPATH}"
+
+# Copy requirements first (for layer caching)
+COPY validators/fmi/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the entire validators package (includes core, fmi, and __init__.py)
+COPY validators /app/validators
+
+# Run as a module so relative imports work correctly
+CMD ["python", "-m", "validators.fmi.main"]

@@ -1,7 +1,7 @@
 # Multi-stage build for EnergyPlus validator container
 #
-# Build context must be vb_validators_dev/ (not energyplus/)
-# Build with: docker build -f energyplus/Dockerfile -t ... .
+# Build context must be vb_validators/ (not validators/energyplus/)
+# Build with: docker build -f validators/energyplus/Dockerfile -t ... .
 
 # =============================================================================
 # Stage 1: Build EnergyPlus
@@ -43,22 +43,20 @@ ENV PATH="/opt/energyplus:${PATH}"
 # Set working directory
 WORKDIR /app
 
+# Add /app to PYTHONPATH so imports like "from validators.core.x" work
+ENV PYTHONPATH="/app:${PYTHONPATH}"
+
 # Copy requirements first (for layer caching)
-# Build context is vb_validators_dev/
-COPY energyplus/requirements.txt .
+COPY validators/energyplus/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy core utilities (shared by all validators)
-COPY core /app/validators/core
-
-# Copy validator code
-COPY energyplus /app/validators/energyplus
+# Copy the entire validators package (includes core, energyplus, and __init__.py)
+COPY validators /app/validators
 
 # Create working directory for EnergyPlus runs
 RUN mkdir -p /tmp/energyplus_run
 
-# Set entrypoint
-WORKDIR /app/validators/energyplus
-CMD ["python", "main.py"]
+# Run as a module so relative imports work correctly
+CMD ["python", "-m", "validators.energyplus.main"]

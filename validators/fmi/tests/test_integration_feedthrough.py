@@ -15,15 +15,20 @@ from pathlib import Path
 
 import pytest
 from validators.fmi import runner
-
-from vb_shared.fmi.envelopes import FMIInputEnvelope, FMIInputs, FMIOutputEnvelope
-from vb_shared.validations.envelopes import ExecutionContext, InputFileItem, SupportedMimeType
+from vb_shared.fmi.envelopes import FMIInputEnvelope
+from vb_shared.fmi.envelopes import FMIInputs
+from vb_shared.fmi.envelopes import FMIOutputEnvelope
+from vb_shared.validations.envelopes import ExecutionContext
+from vb_shared.validations.envelopes import InputFileItem
+from vb_shared.validations.envelopes import SupportedMimeType
 
 
 @pytest.mark.integration
 def test_feedthrough_fmu_echoes_input(monkeypatch, tmp_path) -> None:
     """Run Feedthrough.fmu and assert Int32_output matches Int32_input."""
-    if platform.system().lower() == "darwin" and platform.machine().lower().startswith("arm"):
+    if platform.system().lower() == "darwin" and platform.machine().lower().startswith(
+        "arm"
+    ):
         pytest.skip("Feedthrough.fmu fixture is x86_64-only; skip on Apple Silicon.")
 
     fixture = Path(__file__).parent / "assets" / "Feedthrough.fmu"

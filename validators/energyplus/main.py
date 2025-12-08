@@ -13,29 +13,26 @@ from __future__ import annotations
 
 import logging
 import sys
-from datetime import UTC, datetime
+from datetime import UTC
+from datetime import datetime
 from pathlib import Path
 
 from validators.core.callback_client import post_callback
-from validators.core.envelope_loader import get_output_uri, load_input_envelope
+from validators.core.envelope_loader import get_output_uri
+from validators.core.envelope_loader import load_input_envelope
 from validators.core.error_reporting import report_fatal
-from validators.core.gcs_client import upload_directory, upload_envelope
-
-from vb_shared.energyplus.envelopes import (
-    EnergyPlusInputEnvelope,
-    EnergyPlusOutputEnvelope,
-    EnergyPlusOutputs,
-)
-from vb_shared.validations.envelopes import (
-    RawOutputs,
-    Severity,
-    ValidationArtifact,
-    ValidationMessage,
-    ValidationStatus,
-)
+from validators.core.gcs_client import upload_directory
+from validators.core.gcs_client import upload_envelope
+from vb_shared.energyplus.envelopes import EnergyPlusInputEnvelope
+from vb_shared.energyplus.envelopes import EnergyPlusOutputEnvelope
+from vb_shared.energyplus.envelopes import EnergyPlusOutputs
+from vb_shared.validations.envelopes import RawOutputs
+from vb_shared.validations.envelopes import Severity
+from vb_shared.validations.envelopes import ValidationArtifact
+from vb_shared.validations.envelopes import ValidationMessage
+from vb_shared.validations.envelopes import ValidationStatus
 
 from .runner import run_energyplus_simulation
-
 
 # Configure logging
 logging.basicConfig(
@@ -85,7 +82,9 @@ def main() -> int:
             artifacts, raw_outputs = _upload_outputs(work_dir, execution_bundle_uri)
             outputs = _rewrite_output_paths(outputs, artifacts)
         except Exception:
-            logger.exception("Failed to upload EnergyPlus outputs; continuing without artifacts")
+            logger.exception(
+                "Failed to upload EnergyPlus outputs; continuing without artifacts"
+            )
 
         finished_at = datetime.now(UTC)
 
@@ -128,61 +127,25 @@ def main() -> int:
         logger.info("Validation complete (status=%s)", status.value)
         return 0
 
+    except (FileNotFoundError, ValueError) as exc:
+        logger.error("Validation failed due to missing/invalid input: %s", exc)
+        return _handle_failure(
+            input_envelope=input_envelope if "input_envelope" in locals() else None,
+            started_at=started_at,
+            message=str(exc),
+            report_exception=False,
+            exit_code=0,
+        )
     except Exception as exc:
         logger.exception("Validation failed with unexpected error")
-        report_fatal(
-            exc,
-            context={
-                "run_id": getattr(locals().get("input_envelope", None), "run_id", None),
-                "validator": "energyplus",
-            },
+        return _handle_failure(
+            input_envelope=input_envelope if "input_envelope" in locals() else None,
+            started_at=started_at,
+            message="EnergyPlus validator failed. Please retry or contact support.",
+            report_exception=True,
+            exit_code=1,
+            exception=exc,
         )
-
-        # Try to POST failure callback if we have input envelope
-        try:
-            if "input_envelope" in locals():
-                finished_at = datetime.now(UTC)
-
-                # Create minimal failure envelope
-                failure_envelope = EnergyPlusOutputEnvelope(
-                    run_id=input_envelope.run_id,
-                    validator=input_envelope.validator,
-                    status=ValidationStatus.FAILED_RUNTIME,
-                    timing={
-                        "started_at": started_at,
-                        "finished_at": finished_at,
-                    },
-                    messages=[
-                        ValidationMessage(
-                            severity=Severity.ERROR,
-                            text="EnergyPlus validator failed. Please retry or contact support.",
-                        )
-                    ],
-                    outputs=EnergyPlusOutputs(
-                        energyplus_returncode=-1,
-                        execution_seconds=0,
-                        invocation_mode="cli",
-                    ),
-                )
-
-                output_uri = get_output_uri(input_envelope)
-                upload_envelope(failure_envelope, output_uri)
-
-                post_callback(
-                    callback_url=(
-                        str(input_envelope.context.callback_url)
-                        if input_envelope.context.callback_url
-                        else None
-                    ),
-                    run_id=input_envelope.run_id,
-                    status=ValidationStatus.FAILED_RUNTIME,
-                    result_uri=output_uri,
-                    skip_callback=input_envelope.context.skip_callback,
-                )
-        except Exception:
-            logger.exception("Failed to send failure callback")
-
-        return 1
 
 
 if __name__ == "__main__":
@@ -279,3 +242,69 @@ def _rewrite_output_paths(
         sim_outputs.eplusout_eso = _map("eplusout.eso", sim_outputs.eplusout_eso)
         outputs.outputs = sim_outputs
     return outputs
+
+
+def _handle_failure(
+    *,
+    input_envelope: EnergyPlusInputEnvelope | None,
+    started_at: datetime,
+    message: str,
+    report_exception: bool,
+    exit_code: int,
+    exception: Exception | None = None,
+) -> int:
+    """
+    Serialize a failure envelope and callback without crashing the Job.
+    """
+    if report_exception and exception is not None:
+        report_fatal(
+            exception,
+            context={
+                "run_id": getattr(input_envelope, "run_id", None),
+                "validator": "energyplus",
+            },
+        )
+
+    if input_envelope is None:
+        # If we failed before reading the input envelope, we cannot upload results.
+        return exit_code
+
+    finished_at = datetime.now(UTC)
+    failure_envelope = EnergyPlusOutputEnvelope(
+        run_id=input_envelope.run_id,
+        validator=input_envelope.validator,
+        status=ValidationStatus.FAILED_RUNTIME,
+        timing={
+            "started_at": started_at,
+            "finished_at": finished_at,
+        },
+        messages=[
+            ValidationMessage(
+                severity=Severity.ERROR,
+                text=message,
+            ),
+        ],
+        outputs=EnergyPlusOutputs(
+            energyplus_returncode=-1,
+            execution_seconds=0,
+            invocation_mode="cli",
+        ),
+    )
+
+    output_uri = get_output_uri(input_envelope)
+    upload_envelope(failure_envelope, output_uri)
+
+    post_callback(
+        callback_url=(
+            str(input_envelope.context.callback_url)
+            if input_envelope.context.callback_url
+            else None
+        ),
+        run_id=input_envelope.run_id,
+        status=ValidationStatus.FAILED_RUNTIME,
+        result_uri=output_uri,
+        skip_callback=input_envelope.context.skip_callback,
+    )
+
+    logger.info("Published failure envelope for run_id=%s", input_envelope.run_id)
+    return exit_code

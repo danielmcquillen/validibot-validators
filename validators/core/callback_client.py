@@ -14,9 +14,8 @@ from typing import Any
 import httpx
 from google.auth.transport.requests import Request as GoogleAuthRequest
 from google.oauth2 import id_token
-
-from vb_shared.validations.envelopes import ValidationCallback, ValidationStatus
-
+from vb_shared.validations.envelopes import ValidationCallback
+from vb_shared.validations.envelopes import ValidationStatus
 
 logger = logging.getLogger(__name__)
 

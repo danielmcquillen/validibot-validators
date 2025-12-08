@@ -57,12 +57,13 @@ def run_energyplus_simulation(
 
     # Download input files from GCS
     logger.info("Downloading input files...")
-    model_file = _download_input_files(input_envelope, work_dir)
+    model_file, weather_file = _download_input_files(input_envelope, work_dir)
 
     # Run EnergyPlus
     logger.info("Running EnergyPlus simulation...")
     returncode, stdout, stderr = _run_energyplus(
         model_file=model_file,
+        weather_file=weather_file,
         work_dir=work_dir,
         config=input_envelope.inputs,
     )
@@ -118,7 +119,7 @@ def run_energyplus_simulation(
 def _download_input_files(
     input_envelope: EnergyPlusInputEnvelope,
     work_dir: Path,
-) -> Path:
+) -> tuple[Path, Path]:
     """
     Download input files from GCS to working directory.
 
@@ -127,31 +128,45 @@ def _download_input_files(
         work_dir: Local working directory
 
     Returns:
-        Path to the primary model file (IDF or epJSON)
+        Tuple of (primary model file, weather file)
 
     Raises:
         ValueError: If primary model file is missing
     """
     model_file = None
+    weather_file = None
 
     for file_item in input_envelope.input_files:
         logger.info("Downloading %s (role=%s)", file_item.name, file_item.role)
 
         destination = work_dir / file_item.name
-        download_file(file_item.uri, destination)
+        try:
+            download_file(file_item.uri, destination)
+        except ValueError as exc:
+            if file_item.role == "weather":
+                raise ValueError(
+                    f"Weather file missing or unreadable at {file_item.uri}",
+                ) from exc
+            raise
 
         # Track primary model file
         if file_item.role == "primary-model":
             model_file = destination
+        if file_item.role == "weather":
+            weather_file = destination
 
     if model_file is None:
         raise ValueError("No primary-model file found in input_files")
 
-    return model_file
+    if weather_file is None:
+        raise ValueError("No weather file found in input_files")
+
+    return model_file, weather_file
 
 
 def _run_energyplus(
     model_file: Path,
+    weather_file: Path,
     work_dir: Path,
     config,
 ) -> tuple[int, str, str]:
@@ -160,21 +175,13 @@ def _run_energyplus(
 
     Args:
         model_file: Path to IDF or epJSON model file
+        weather_file: Path to the EPW weather file
         work_dir: Working directory for simulation
         config: EnergyPlusInputs configuration
 
     Returns:
         Tuple of (returncode, stdout, stderr)
     """
-    # Find weather file (should be in work_dir)
-    weather_file = None
-    for f in work_dir.glob("*.epw"):
-        weather_file = f
-        break
-
-    if weather_file is None:
-        logger.warning("No weather file found, EnergyPlus may fail")
-
     # Build EnergyPlus command
     cmd = [
         "energyplus",
@@ -182,8 +189,7 @@ def _run_energyplus(
         str(work_dir),
     ]
 
-    if weather_file:
-        cmd.extend(["--weather", str(weather_file)])
+    cmd.extend(["--weather", str(weather_file)])
 
     cmd.append(str(model_file))
 

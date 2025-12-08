@@ -30,7 +30,7 @@ ar_repo := ar_host + "/" + gcp_project + "/validibot"
 git_sha := `git rev-parse --short HEAD 2>/dev/null || echo "dev"`
 
 # Available validators
-validators := "energyplus"
+validators := "energyplus fmi"
 
 # =============================================================================
 # Default - List Commands
@@ -49,7 +49,7 @@ test *args:
 
 # Run tests for a specific validator
 test-validator validator:
-    uv run pytest {{validator}}/tests
+    uv run pytest validators/{{validator}}/tests
 
 # Lint all code
 lint:
@@ -75,12 +75,16 @@ check: lint test
 # =============================================================================
 
 # Build a validator container locally
+# Build context is the repo root (vb_validators/), not the validator subdirectory
+# Builds for linux/amd64 since Cloud Run requires that architecture
 build validator:
     @echo "Building {{validator}} container..."
     docker build \
+        --platform linux/amd64 \
+        -f validators/{{validator}}/Dockerfile \
         -t validibot-validator-{{validator}}:latest \
         -t validibot-validator-{{validator}}:{{git_sha}} \
-        ./{{validator}}
+        .
     @echo "✓ Built validibot-validator-{{validator}}:{{git_sha}}"
 
 # Build all validator containers
