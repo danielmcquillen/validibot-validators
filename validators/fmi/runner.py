@@ -27,12 +27,31 @@ logger = logging.getLogger(__name__)
 def run_fmi_simulation(input_envelope: FMIInputEnvelope) -> tuple[FMIOutputs, Path]:
     """
     Execute an FMU using fmpy and return FMIOutputs plus the working directory.
+
+    Raises:
+        ValueError: If input_envelope is missing required fields
+        RuntimeError: If simulation fails
     """
+    # Validate required fields
+    if input_envelope is None:
+        raise ValueError("input_envelope is required")
+    if not input_envelope.run_id:
+        raise ValueError("input_envelope.run_id is required")
+    if not input_envelope.input_files:
+        raise ValueError("input_envelope.input_files is required")
+    if input_envelope.inputs is None:
+        raise ValueError("input_envelope.inputs is required")
+    if input_envelope.inputs.simulation is None:
+        raise ValueError("input_envelope.inputs.simulation is required")
+
     start_time = time.time()
     work_dir = Path("/tmp/fmi_run") / input_envelope.run_id
     work_dir.mkdir(parents=True, exist_ok=True)
 
     fmu_path = _download_fmu(input_envelope, work_dir)
+    if not fmu_path.exists():
+        raise ValueError(f"FMU file not found at {fmu_path}")
+
     md = _read_model_description(fmu_path)
 
     sim_cfg = input_envelope.inputs.simulation
@@ -44,13 +63,16 @@ def run_fmi_simulation(input_envelope: FMIInputEnvelope) -> tuple[FMIOutputs, Pa
     log_messages: list[str] = []
 
     try:
+        # Note: fmpy 3.x requires start_values to be a dict (not None) because it
+        # calls start_values.copy(). Pass empty dict if no start values provided.
+        # output=None is fine (tells fmpy to use default outputs from model).
         result = simulate_fmu(
             filename=str(fmu_path),
             start_time=sim_cfg.start_time,
             stop_time=sim_cfg.stop_time,
             step_size=sim_cfg.step_size,
-            output=requested_outputs or None,
-            start_values=start_values or None,
+            output=requested_outputs if requested_outputs else None,
+            start_values=start_values,  # Always pass dict, never None
             logger=log_messages.append,
         )
 
