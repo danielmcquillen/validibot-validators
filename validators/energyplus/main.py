@@ -123,6 +123,7 @@ def main() -> int:
             run_id=input_envelope.run_id,
             status=status,
             result_uri=output_uri,
+            callback_id=input_envelope.context.callback_id,
             skip_callback=input_envelope.context.skip_callback,
         )
 
@@ -305,6 +306,7 @@ def _handle_failure(
         run_id=input_envelope.run_id,
         status=ValidationStatus.FAILED_RUNTIME,
         result_uri=output_uri,
+        callback_id=input_envelope.context.callback_id,
         skip_callback=input_envelope.context.skip_callback,
     )
 

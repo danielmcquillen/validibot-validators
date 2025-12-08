@@ -27,6 +27,7 @@ def post_callback(
     status: ValidationStatus,
     result_uri: str,
     *,
+    callback_id: str | None = None,
     skip_callback: bool = False,
     timeout_seconds: int = 30,
     max_attempts: int = 3,
@@ -40,6 +41,7 @@ def post_callback(
         run_id: Validation run ID
         status: Validation status (SUCCESS, FAILED_VALIDATION, etc.)
         result_uri: GCS URI to output.json
+        callback_id: Idempotency key echoed from the input envelope (for duplicate detection)
         skip_callback: If True, skip the callback POST (useful for testing)
         timeout_seconds: HTTP request timeout
         max_attempts: Retry attempts for transient failures
@@ -64,10 +66,16 @@ def post_callback(
         )
         return None
 
-    logger.info("POSTing callback for run_id=%s to %s", run_id, callback_url)
+    logger.info(
+        "POSTing callback for run_id=%s to %s (callback_id=%s)",
+        run_id,
+        callback_url,
+        callback_id,
+    )
 
     callback = ValidationCallback(
         run_id=run_id,
+        callback_id=callback_id,
         status=status,
         result_uri=result_uri,
     )
