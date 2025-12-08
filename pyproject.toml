@@ -2,7 +2,7 @@
 
 [project]
 name = "vb-validators"
-version = "0.1.0"
+version = "0.1.1"
 description = "Validibot Cloud Run Job validator containers"
 readme = "README.md"
 requires-python = ">=3.13"
