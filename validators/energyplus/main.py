@@ -31,6 +31,7 @@ from vb_shared.validations.envelopes import (
     ValidationArtifact,
     ValidationMessage,
     ValidationStatus,
+    ValidatorType,
 )
 
 from .runner import run_energyplus_simulation
@@ -264,7 +265,7 @@ def _handle_failure(
             exception,
             context={
                 "run_id": getattr(input_envelope, "run_id", None),
-                "validator": "energyplus",
+                "validator": ValidatorType.ENERGYPLUS,
             },
         )
 

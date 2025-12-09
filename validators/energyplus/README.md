@@ -28,7 +28,7 @@ This container:
   "run_id": "abc-123",
   "validator": {
     "id": "validator-uuid",
-    "type": "energyplus",
+    "type": "ENERGYPLUS",
     "version": "24.2.0"
   },
   "input_files": [
@@ -66,7 +66,7 @@ This container:
   "run_id": "abc-123",
   "validator": {
     "id": "validator-uuid",
-    "type": "energyplus",
+    "type": "ENERGYPLUS",
     "version": "24.2.0"
   },
   "status": "success",

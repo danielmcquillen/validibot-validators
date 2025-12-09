@@ -48,7 +48,7 @@ def test_feedthrough_fmu_echoes_input_x86(monkeypatch, tmp_path) -> None:
 
     envelope = FMIInputEnvelope(
         run_id="test-run",
-        validator={"id": "1", "type": "fmi", "version": "1"},
+        validator={"id": "1", "type": "FMI", "version": "1"},
         org={"id": "1", "name": "Test Org"},
         workflow={"id": "1", "step_id": "1", "step_name": "Feedthrough"},
         input_files=[
@@ -94,7 +94,7 @@ def test_feedthrough_fmu_echoes_input_arm64(monkeypatch, tmp_path) -> None:
 
     envelope = FMIInputEnvelope(
         run_id="test-run",
-        validator={"id": "1", "type": "fmi", "version": "1"},
+        validator={"id": "1", "type": "FMI", "version": "1"},
         org={"id": "1", "name": "Test Org"},
         workflow={"id": "1", "step_id": "1", "step_name": "Feedthrough"},
         input_files=[

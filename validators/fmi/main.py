@@ -23,6 +23,7 @@ from vb_shared.validations.envelopes import (
     ValidationArtifact,
     ValidationMessage,
     ValidationStatus,
+    ValidatorType,
 )
 
 from .runner import run_fmi_simulation
@@ -105,7 +106,7 @@ def main() -> int:
             exc,
             context={
                 "run_id": getattr(locals().get("input_envelope", None), "run_id", None),
-                "validator": "fmi",
+                "validator": ValidatorType.FMI,
             },
         )
         try:
