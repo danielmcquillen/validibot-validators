@@ -17,7 +17,7 @@ dependencies = [
     "google-auth>=2.43.0",
     "requests>=2.32.0",
     "sentry-sdk>=2.47.0",
-    "vb-shared @ git+https://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:x-oauth-basic@github.com/danielmcquillen/vb_shared.git@main",
+    "vb-shared @ git+https://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:x-oauth-basic@github.com/danielmcquillen/vb_shared.git@main",
 
 ]
 
@@ -53,7 +53,12 @@ packages = ["validators"]
 # ==== pytest ====
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "validators/energyplus/tests", "validators/core/tests", "validators/fmi/tests"]
+testpaths = [
+    "tests",
+    "validators/energyplus/tests",
+    "validators/core/tests",
+    "validators/fmi/tests",
+]
 python_files = ["test_*.py", "*_test.py"]
 python_functions = ["test_*"]
 addopts = ["-v", "--tb=short", "--strict-markers"]

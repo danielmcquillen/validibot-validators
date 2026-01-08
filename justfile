@@ -2,13 +2,21 @@
 # Validibot Validators Justfile
 # =============================================================================
 #
-# Build and deploy validator containers for Cloud Run Jobs.
+# Build, test, and deploy validator containers for Cloud Run Jobs.
 #
-# Usage:
-#   just                    # List all available commands
-#   just build energyplus   # Build a specific validator
-#   just build-all          # Build all validators
-#   just deploy energyplus  # Deploy to Cloud Run Jobs
+# USAGE:
+#   just                        # List all available commands
+#   just build energyplus       # Build a specific validator locally
+#   just test                   # Run all tests
+#   just deploy energyplus dev  # Deploy to dev stage
+#
+# DEPLOYMENT:
+#   This justfile handles the full deployment lifecycle. You can also use
+#   the main validibot justfile (../validibot/justfile) which has equivalent
+#   commands. Both work - use whichever is more convenient:
+#
+#     From vb_validators/:  just deploy energyplus dev
+#     From validibot/:      just validator-deploy energyplus dev
 #
 # =============================================================================
 
@@ -18,7 +26,7 @@ set shell := ["bash", "-cu"]
 # Configuration
 # =============================================================================
 
-# GCP defaults (override with: just --set gcp_project "my-project" build energyplus)
+# GCP defaults (override with: just --set gcp_project "my-project" deploy energyplus dev)
 gcp_project := "project-a509c806-3e21-4fbc-b19"
 gcp_region := "australia-southeast1"
 
@@ -84,6 +92,8 @@ build validator:
         -f validators/{{validator}}/Dockerfile \
         -t validibot-validator-{{validator}}:latest \
         -t validibot-validator-{{validator}}:{{git_sha}} \
+        -t {{ar_repo}}/validibot-validator-{{validator}}:latest \
+        -t {{ar_repo}}/validibot-validator-{{validator}}:{{git_sha}} \
         .
     @echo "✓ Built validibot-validator-{{validator}}:{{git_sha}}"
 
@@ -100,11 +110,9 @@ build-all:
 # Docker Push (to Artifact Registry)
 # =============================================================================
 
-# Tag and push a validator to Artifact Registry
+# Push a validator to Artifact Registry
 push validator:
     @echo "Pushing {{validator}} to Artifact Registry..."
-    docker tag validibot-validator-{{validator}}:latest {{ar_repo}}/validibot-validator-{{validator}}:latest
-    docker tag validibot-validator-{{validator}}:{{git_sha}} {{ar_repo}}/validibot-validator-{{validator}}:{{git_sha}}
     docker push {{ar_repo}}/validibot-validator-{{validator}}:latest
     docker push {{ar_repo}}/validibot-validator-{{validator}}:{{git_sha}}
     @echo "✓ Pushed {{ar_repo}}/validibot-validator-{{validator}}:{{git_sha}}"
@@ -118,35 +126,65 @@ push-all:
     done
     echo "✓ All validators pushed"
 
+# Build and push in one step
+build-push validator: (build validator) (push validator)
+
 # =============================================================================
 # Cloud Run Jobs Deployment
 # =============================================================================
 
-# Deploy a validator as a Cloud Run Job (creates or updates)
-deploy validator:
-    @echo "Deploying {{validator}} to Cloud Run Jobs..."
-    just build {{validator}}
-    just push {{validator}}
-    @echo "Creating/updating Cloud Run Job..."
-    gcloud run jobs deploy validibot-validator-{{validator}} \
+# Deploy a validator as a Cloud Run Job to a specific stage
+# Usage: just deploy energyplus dev | just deploy fmi prod
+deploy validator stage: (build-push validator)
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ ! "{{stage}}" =~ ^(dev|staging|prod)$ ]]; then
+        echo "Error: stage must be 'dev', 'staging', or 'prod'"
+        exit 1
+    fi
+
+    # Compute stage-specific names
+    if [ "{{stage}}" = "prod" ]; then
+        JOB_NAME="validibot-validator-{{validator}}"
+        SA="validibot-cloudrun-prod@{{gcp_project}}.iam.gserviceaccount.com"
+    else
+        JOB_NAME="validibot-validator-{{validator}}-{{stage}}"
+        SA="validibot-cloudrun-{{stage}}@{{gcp_project}}.iam.gserviceaccount.com"
+    fi
+
+    echo "Deploying $JOB_NAME to {{stage}}..."
+    gcloud run jobs deploy "$JOB_NAME" \
         --image {{ar_repo}}/validibot-validator-{{validator}}:{{git_sha}} \
         --region {{gcp_region}} \
         --project {{gcp_project}} \
+        --service-account "$SA" \
         --memory 4Gi \
         --cpu 2 \
         --max-retries 0 \
         --task-timeout 3600 \
-        --set-env-vars "PYTHONUNBUFFERED=1"
-    @echo "✓ Deployed validibot-validator-{{validator}}"
+        --set-env-vars "PYTHONUNBUFFERED=1,VALIDATOR_VERSION={{git_sha}},VALIDIBOT_STAGE={{stage}}" \
+        --labels "validator={{validator}},version={{git_sha}},stage={{stage}}"
+    echo "✓ $JOB_NAME deployed"
 
-# Deploy all validators
-deploy-all:
+    # Grant the service account permission to invoke this job
+    # This allows the web/worker Cloud Run services to trigger the validator job
+    echo "Granting invoker permission to $SA on $JOB_NAME..."
+    gcloud run jobs add-iam-policy-binding "$JOB_NAME" \
+        --region {{gcp_region}} \
+        --project {{gcp_project}} \
+        --member="serviceAccount:$SA" \
+        --role="roles/run.invoker"
+    echo "✓ IAM binding added"
+
+# Deploy all validators to a stage
+# Usage: just deploy-all dev | just deploy-all prod
+deploy-all stage:
     #!/usr/bin/env bash
     set -euo pipefail
     for v in {{validators}}; do
-        just deploy "$v"
+        just deploy "$v" {{stage}}
     done
-    echo "✓ All validators deployed"
+    echo "✓ All validators deployed to {{stage}}"
 
 # =============================================================================
 # Cloud Run Jobs Management
@@ -160,27 +198,45 @@ list-jobs:
         --filter "name~validibot-validator"
 
 # Show job details
-describe-job validator:
-    gcloud run jobs describe validibot-validator-{{validator}} \
+describe-job validator stage="prod":
+    #!/usr/bin/env bash
+    if [ "{{stage}}" = "prod" ]; then
+        JOB_NAME="validibot-validator-{{validator}}"
+    else
+        JOB_NAME="validibot-validator-{{validator}}-{{stage}}"
+    fi
+    gcloud run jobs describe "$JOB_NAME" \
         --region {{gcp_region}} \
         --project {{gcp_project}}
 
 # View recent job logs
-logs validator lines="100":
+logs validator stage="prod" lines="100":
+    #!/usr/bin/env bash
+    if [ "{{stage}}" = "prod" ]; then
+        JOB_NAME="validibot-validator-{{validator}}"
+    else
+        JOB_NAME="validibot-validator-{{validator}}-{{stage}}"
+    fi
     gcloud logging read \
-        'resource.type="cloud_run_job" AND resource.labels.job_name="validibot-validator-{{validator}}"' \
+        "resource.type=\"cloud_run_job\" AND resource.labels.job_name=\"$JOB_NAME\"" \
         --project {{gcp_project}} \
         --limit {{lines}} \
         --format "table(timestamp,textPayload)"
 
 # Delete a validator job
-delete-job validator:
-    @echo "Deleting Cloud Run Job validibot-validator-{{validator}}..."
-    gcloud run jobs delete validibot-validator-{{validator}} \
+delete-job validator stage="prod":
+    #!/usr/bin/env bash
+    if [ "{{stage}}" = "prod" ]; then
+        JOB_NAME="validibot-validator-{{validator}}"
+    else
+        JOB_NAME="validibot-validator-{{validator}}-{{stage}}"
+    fi
+    echo "Deleting Cloud Run Job $JOB_NAME..."
+    gcloud run jobs delete "$JOB_NAME" \
         --region {{gcp_region}} \
         --project {{gcp_project}} \
         --quiet
-    @echo "✓ Deleted validibot-validator-{{validator}}"
+    echo "✓ Deleted $JOB_NAME"
 
 # =============================================================================
 # Local Development Helpers
@@ -205,10 +261,10 @@ shell validator:
 # =============================================================================
 
 # Build, test, and deploy (for CI)
-ci-deploy validator:
+ci-deploy validator stage:
     just lint
     just test-validator {{validator}}
-    just deploy {{validator}}
+    just deploy {{validator}} {{stage}}
 
 # Verify all validators are deployable (dry run)
 verify-all:
