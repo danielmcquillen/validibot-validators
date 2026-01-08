@@ -166,14 +166,14 @@ deploy validator stage: (build-push validator)
         --labels "validator={{validator}},version={{git_sha}},stage={{stage}}"
     echo "✓ $JOB_NAME deployed"
 
-    # Grant the service account permission to invoke this job
-    # This allows the web/worker Cloud Run services to trigger the validator job
-    echo "Granting invoker permission to $SA on $JOB_NAME..."
+    # Grant the service account permission to run this job with overrides
+    # Uses custom role with run.jobs.run + run.jobs.runWithOverrides (for INPUT_URI env)
+    echo "Granting job runner permission to $SA on $JOB_NAME..."
     gcloud run jobs add-iam-policy-binding "$JOB_NAME" \
         --region {{gcp_region}} \
         --project {{gcp_project}} \
         --member="serviceAccount:$SA" \
-        --role="roles/run.invoker"
+        --role="projects/{{gcp_project}}/roles/validibot_job_runner"
     echo "✓ IAM binding added"
 
 # Deploy all validators to a stage
