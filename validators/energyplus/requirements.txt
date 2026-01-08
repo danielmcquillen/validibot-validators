@@ -5,4 +5,4 @@ google-cloud-storage>=2.10.0
 google-auth>=2.0.0
 
 # vb_shared from GitHub
-vb-shared @ git+https://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:x-oauth-basic@github.com/danielmcquillen/vb_shared.git@main
+vb-shared @ git+https://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:x-oauth-basic@github.com/danielmcquillen/vb_shared.git@main
