@@ -69,7 +69,7 @@ def main() -> int:
 
         # Run EnergyPlus simulation
         logger.info("Running EnergyPlus simulation...")
-        outputs, work_dir = run_energyplus_simulation(input_envelope)
+        outputs, work_dir, parsed_messages = run_energyplus_simulation(input_envelope)
 
         # Determine status from simulation results
         if outputs.energyplus_returncode == 0:
@@ -91,6 +91,27 @@ def main() -> int:
 
         finished_at = datetime.now(UTC)
 
+        # Convert parsed messages to ValidationMessage objects
+        messages: list[ValidationMessage] = []
+        for msg in parsed_messages:
+            severity_str = msg.get("severity", "error")
+            if severity_str == "warning":
+                severity = Severity.WARNING
+            elif severity_str == "info":
+                severity = Severity.INFO
+            else:
+                severity = Severity.ERROR
+            messages.append(
+                ValidationMessage(
+                    severity=severity,
+                    text=msg.get("text", ""),
+                    code=msg.get("code"),
+                )
+            )
+
+        if messages:
+            logger.info("Including %d validation messages in output", len(messages))
+
         # Create output envelope
         logger.info("Creating output envelope...")
         output_envelope = EnergyPlusOutputEnvelope(
@@ -101,7 +122,7 @@ def main() -> int:
                 "started_at": started_at,
                 "finished_at": finished_at,
             },
-            messages=[],  # Populated by runner if needed
+            messages=messages,
             metrics=[],  # Populated by runner if needed
             outputs=outputs,
             artifacts=artifacts,

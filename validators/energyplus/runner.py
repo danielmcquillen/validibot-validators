@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 def run_energyplus_simulation(
     input_envelope: EnergyPlusInputEnvelope,
-) -> tuple[EnergyPlusOutputs, Path]:
+) -> tuple[EnergyPlusOutputs, Path, list[dict]]:
     """
     Run EnergyPlus simulation based on input envelope.
 
@@ -39,8 +39,10 @@ def run_energyplus_simulation(
         input_envelope: Typed input envelope with files and configuration
 
     Returns:
-        EnergyPlus outputs including returncode, metrics, logs, and file paths,
-        plus the working directory containing artifacts to upload.
+        Tuple of:
+        - EnergyPlus outputs including returncode, metrics, logs, and file paths
+        - Working directory containing artifacts to upload
+        - List of parsed error/warning messages from .err file
 
     Raises:
         ValueError: If required input files are missing
@@ -70,13 +72,12 @@ def run_energyplus_simulation(
     execution_seconds = time.time() - start_time
 
     # Collect output file paths
+    err_path = work_dir / "eplusout.err" if (work_dir / "eplusout.err").exists() else None
     outputs = EnergyPlusSimulationOutputs(
         eplusout_sql=work_dir / "eplusout.sql"
         if (work_dir / "eplusout.sql").exists()
         else None,
-        eplusout_err=work_dir / "eplusout.err"
-        if (work_dir / "eplusout.err").exists()
-        else None,
+        eplusout_err=err_path,
         eplusout_csv=work_dir / "eplusout.csv"
         if (work_dir / "eplusout.csv").exists()
         else None,
@@ -93,8 +94,14 @@ def run_energyplus_simulation(
     logs = EnergyPlusSimulationLogs(
         stdout_tail=stdout[-STDOUT_TAIL_CHARS:] if stdout else None,
         stderr_tail=stderr[-STDOUT_TAIL_CHARS:] if stderr else None,
-        err_tail=_read_err_tail(outputs.eplusout_err),
+        err_tail=_read_err_tail(err_path),
     )
+
+    # Parse error messages from .err file
+    logger.info("Parsing error messages...")
+    parsed_messages = parse_err_file(err_path)
+    if parsed_messages:
+        logger.info("Found %d error/warning messages in .err file", len(parsed_messages))
 
     logger.info(
         "Simulation complete (returncode=%d, duration=%.2fs)",
@@ -112,6 +119,7 @@ def run_energyplus_simulation(
             invocation_mode=input_envelope.inputs.invocation_mode,
         ),
         work_dir,
+        parsed_messages,
     )
 
 
@@ -371,3 +379,109 @@ def _read_err_tail(err_path: Path | None, max_lines: int = 200) -> str | None:
     except Exception as e:
         logger.warning("Failed to read err file: %s", e)
         return None
+
+
+def parse_err_file(err_path: Path | None) -> list[dict]:
+    """
+    Parse EnergyPlus .err file and extract error/warning messages.
+
+    EnergyPlus .err files contain lines like:
+        ** Warning ** Some warning message
+        ** Severe  ** Some severe error message
+        **  Fatal  ** Some fatal error message
+
+    Multi-line messages are continued on subsequent lines until the next
+    marker or summary section.
+
+    Args:
+        err_path: Path to eplusout.err file (or None if not generated)
+
+    Returns:
+        List of dicts with keys: severity, text, code (optional)
+    """
+    if err_path is None or not err_path.exists():
+        return []
+
+    messages: list[dict] = []
+
+    try:
+        content = err_path.read_text(encoding="utf-8", errors="replace")
+    except Exception as e:
+        logger.warning("Failed to read err file for parsing: %s", e)
+        return []
+
+    # Pattern to match EnergyPlus error markers
+    # Examples:
+    #   ** Warning ** message text
+    #   ** Severe  ** message text
+    #   **  Fatal  ** message text
+    import re
+
+    # Split into lines and process
+    lines = content.split("\n")
+    current_message: dict | None = None
+    seen_messages: set[str] = set()  # Dedupe messages
+
+    for line in lines:
+        # Check for error markers
+        warning_match = re.match(r"\s*\*\*\s*Warning\s*\*\*\s*(.*)", line, re.IGNORECASE)
+        severe_match = re.match(r"\s*\*\*\s*Severe\s*\*\*\s*(.*)", line, re.IGNORECASE)
+        fatal_match = re.match(r"\s*\*\*\s*Fatal\s*\*\*\s*(.*)", line, re.IGNORECASE)
+
+        # Skip summary lines (start with many asterisks)
+        if line.strip().startswith("*************"):
+            # Save current message if any
+            if current_message and current_message["text"] not in seen_messages:
+                seen_messages.add(current_message["text"])
+                messages.append(current_message)
+            current_message = None
+            continue
+
+        # Skip "...Summary of Errors" section
+        if "Summary of Errors" in line or "Reference severe error" in line:
+            if current_message and current_message["text"] not in seen_messages:
+                seen_messages.add(current_message["text"])
+                messages.append(current_message)
+            current_message = None
+            continue
+
+        if fatal_match:
+            # Save previous message
+            if current_message and current_message["text"] not in seen_messages:
+                seen_messages.add(current_message["text"])
+                messages.append(current_message)
+            current_message = {
+                "severity": "error",  # Fatal maps to error
+                "text": fatal_match.group(1).strip(),
+                "code": "ENERGYPLUS_FATAL",
+            }
+        elif severe_match:
+            if current_message and current_message["text"] not in seen_messages:
+                seen_messages.add(current_message["text"])
+                messages.append(current_message)
+            current_message = {
+                "severity": "error",  # Severe maps to error
+                "text": severe_match.group(1).strip(),
+                "code": "ENERGYPLUS_SEVERE",
+            }
+        elif warning_match:
+            if current_message and current_message["text"] not in seen_messages:
+                seen_messages.add(current_message["text"])
+                messages.append(current_message)
+            current_message = {
+                "severity": "warning",
+                "text": warning_match.group(1).strip(),
+                "code": "ENERGYPLUS_WARNING",
+            }
+        elif current_message and line.strip():
+            # Continuation of previous message (multi-line errors)
+            # Only append if it looks like content, not a separator
+            stripped = line.strip()
+            if not stripped.startswith("~"):
+                current_message["text"] += " " + stripped
+
+    # Don't forget the last message
+    if current_message and current_message["text"] not in seen_messages:
+        messages.append(current_message)
+
+    return messages

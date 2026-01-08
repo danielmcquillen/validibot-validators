@@ -82,18 +82,17 @@ check: lint test
 # Docker Build
 # =============================================================================
 
-# Build a validator container locally
+# Build a validator container locally (for testing only)
 # Build context is the repo root (vb_validators/), not the validator subdirectory
 # Builds for linux/amd64 since Cloud Run requires that architecture
 build validator:
     @echo "Building {{validator}} container..."
-    docker build \
+    docker buildx build \
         --platform linux/amd64 \
+        --load \
         -f validators/{{validator}}/Dockerfile \
         -t validibot-validator-{{validator}}:latest \
         -t validibot-validator-{{validator}}:{{git_sha}} \
-        -t {{ar_repo}}/validibot-validator-{{validator}}:latest \
-        -t {{ar_repo}}/validibot-validator-{{validator}}:{{git_sha}} \
         .
     @echo "✓ Built validibot-validator-{{validator}}:{{git_sha}}"
 
@@ -110,24 +109,27 @@ build-all:
 # Docker Push (to Artifact Registry)
 # =============================================================================
 
-# Push a validator to Artifact Registry
-push validator:
-    @echo "Pushing {{validator}} to Artifact Registry..."
-    docker push {{ar_repo}}/validibot-validator-{{validator}}:latest
-    docker push {{ar_repo}}/validibot-validator-{{validator}}:{{git_sha}}
-    @echo "✓ Pushed {{ar_repo}}/validibot-validator-{{validator}}:{{git_sha}}"
+# Build and push a validator to Artifact Registry in one step
+# Uses buildx with --push to avoid platform manifest issues on Apple Silicon
+build-push validator:
+    @echo "Building and pushing {{validator}} container..."
+    docker buildx build \
+        --platform linux/amd64 \
+        --push \
+        -f validators/{{validator}}/Dockerfile \
+        -t {{ar_repo}}/validibot-validator-{{validator}}:latest \
+        -t {{ar_repo}}/validibot-validator-{{validator}}:{{git_sha}} \
+        .
+    @echo "✓ Built and pushed {{ar_repo}}/validibot-validator-{{validator}}:{{git_sha}}"
 
-# Push all validators
-push-all:
+# Build and push all validators
+build-push-all:
     #!/usr/bin/env bash
     set -euo pipefail
     for v in {{validators}}; do
-        just push "$v"
+        just build-push "$v"
     done
-    echo "✓ All validators pushed"
-
-# Build and push in one step
-build-push validator: (build validator) (push validator)
+    echo "✓ All validators built and pushed"
 
 # =============================================================================
 # Cloud Run Jobs Deployment
