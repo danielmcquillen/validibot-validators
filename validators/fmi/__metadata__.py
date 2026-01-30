@@ -33,9 +33,9 @@ ENV_VARS = {
         "required": False,
         "description": "Storage URI for output envelope (optional, derived from input if not set)",
     },
-    "INPUT_URI": {
+    "VALIDIBOT_RUN_ID": {
         "required": False,
-        "description": "Alias for VALIDIBOT_INPUT_URI (backwards compatibility)",
+        "description": "Validation run ID for logging and tracing",
     },
 }
 

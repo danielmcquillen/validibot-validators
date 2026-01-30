@@ -169,7 +169,7 @@ deploy validator stage: (build-push validator)
     echo "✓ $JOB_NAME deployed"
 
     # Grant the service account permission to run this job with overrides
-    # Uses custom role with run.jobs.run + run.jobs.runWithOverrides (for INPUT_URI env)
+    # Uses custom role with run.jobs.run + run.jobs.runWithOverrides (for VALIDIBOT_INPUT_URI env)
     echo "Granting job runner permission to $SA on $JOB_NAME..."
     gcloud run jobs add-iam-policy-binding "$JOB_NAME" \
         --region {{gcp_region}} \
@@ -247,7 +247,7 @@ delete-job validator stage="prod":
 # Run a validator container locally (for testing)
 run-local validator input_uri:
     docker run --rm \
-        -e INPUT_URI={{input_uri}} \
+        -e VALIDIBOT_INPUT_URI={{input_uri}} \
         -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/keys/adc.json \
         -v "$HOME/.config/gcloud/application_default_credentials.json:/tmp/keys/adc.json:ro" \
         validibot-validator-{{validator}}:latest

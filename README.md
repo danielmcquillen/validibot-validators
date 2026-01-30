@@ -95,16 +95,13 @@ Validators accept input via environment variables:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `VALIDIBOT_INPUT_URI` | Yes* | Storage URI to input envelope (gs:// or file://) |
+| `VALIDIBOT_INPUT_URI` | Yes | Storage URI to input envelope (gs:// or file://) |
 | `VALIDIBOT_OUTPUT_URI` | No | Storage URI for output (derived from input if not set) |
-| `INPUT_URI` | Yes* | Alias for VALIDIBOT_INPUT_URI (backwards compat) |
+| `VALIDIBOT_RUN_ID` | No | Validation run ID (for logging) |
 
-*One of `VALIDIBOT_INPUT_URI` or `INPUT_URI` must be set, or URI passed as first CLI argument.
-
-The loader checks in this order:
-1. `VALIDIBOT_INPUT_URI` (preferred for self-hosted Docker)
-2. `INPUT_URI` (for Cloud Run Jobs / backwards compatibility)
-3. First command-line argument (for manual testing)
+The loader checks for URIs in this order:
+1. `VALIDIBOT_INPUT_URI` environment variable
+2. First command-line argument (for manual testing)
 
 ## Storage Backends
 

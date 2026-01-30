@@ -4,14 +4,13 @@ Envelope loader utilities for validator containers.
 Provides helpers for loading input envelopes from environment variables or
 command-line arguments. Supports multiple deployment modes:
 
-- Cloud Run Jobs: Uses INPUT_URI environment variable
+- Cloud Run Jobs: Uses VALIDIBOT_INPUT_URI environment variable
 - Self-hosted Docker: Uses VALIDIBOT_INPUT_URI environment variable
 - Manual testing: Accepts URI as first command-line argument
 
 The loader checks for URIs in this order:
-1. VALIDIBOT_INPUT_URI (preferred for self-hosted deployments)
-2. INPUT_URI (for backwards compatibility with Cloud Run)
-3. First command-line argument
+1. VALIDIBOT_INPUT_URI environment variable
+2. First command-line argument (for manual testing)
 """
 
 from __future__ import annotations
@@ -33,9 +32,8 @@ def load_input_envelope[T: BaseModel](envelope_class: type[T]) -> T:
     Load input envelope from environment variable or command-line argument.
 
     Checks for input URI in this order:
-    1. VALIDIBOT_INPUT_URI environment variable (self-hosted Docker)
-    2. INPUT_URI environment variable (Cloud Run Jobs)
-    3. First command-line argument (manual testing)
+    1. VALIDIBOT_INPUT_URI environment variable
+    2. First command-line argument (manual testing)
 
     Supports both gs:// (GCS) and file:// (local filesystem) URIs.
 
@@ -49,12 +47,8 @@ def load_input_envelope[T: BaseModel](envelope_class: type[T]) -> T:
         ValueError: If no input URI is provided
         ValidationError: If JSON doesn't match envelope schema
     """
-    # Check VALIDIBOT_INPUT_URI first (self-hosted Docker standard)
+    # Check VALIDIBOT_INPUT_URI (standardized for all deployment targets)
     input_uri = os.getenv("VALIDIBOT_INPUT_URI")
-
-    # Fall back to INPUT_URI (Cloud Run Jobs / backwards compatibility)
-    if not input_uri:
-        input_uri = os.getenv("INPUT_URI")
 
     # Fall back to command-line argument (manual testing)
     if not input_uri and len(sys.argv) > 1:
@@ -62,7 +56,7 @@ def load_input_envelope[T: BaseModel](envelope_class: type[T]) -> T:
 
     if not input_uri:
         raise ValueError(
-            "No input URI provided. Set VALIDIBOT_INPUT_URI or INPUT_URI "
+            "No input URI provided. Set VALIDIBOT_INPUT_URI "
             "environment variable, or pass URI as first argument."
         )
 

@@ -17,7 +17,9 @@ This container:
 
 ### Environment Variables
 
-- `INPUT_URI` (required): GCS URI to input.json (e.g., `gs://bucket/org_id/run_id/input.json`)
+- `VALIDIBOT_INPUT_URI` (required): Storage URI to input.json (e.g., `gs://bucket/org_id/run_id/input.json` or `file:///app/storage/runs/run_id/input.json`)
+- `VALIDIBOT_OUTPUT_URI` (optional): Where to write output.json (derived from input if not set)
+- `VALIDIBOT_RUN_ID` (optional): Validation run ID for logging
 - `GOOGLE_CLOUD_PROJECT`: GCP project ID (auto-set by Cloud Run)
 
 ### Input Envelope Structure
@@ -144,7 +146,7 @@ just logs energyplus
 ```bash
 gcloud run jobs execute validibot-validator-energyplus \
   --region australia-southeast1 \
-  --update-env-vars INPUT_URI=gs://bucket/test/input.json
+  --update-env-vars VALIDIBOT_INPUT_URI=gs://bucket/test/input.json
 ```
 
 ## Local Development
