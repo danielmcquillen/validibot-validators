@@ -20,8 +20,8 @@ from pathlib import Path
 import pytest
 
 from validators.fmi import runner
-from vb_shared.fmi.envelopes import FMIInputEnvelope, FMIInputs, FMIOutputs
-from vb_shared.validations.envelopes import ExecutionContext, InputFileItem, SupportedMimeType
+from validibot_shared.fmi.envelopes import FMIInputEnvelope, FMIInputs, FMIOutputs
+from validibot_shared.validations.envelopes import ExecutionContext, InputFileItem, SupportedMimeType
 
 
 def _is_apple_silicon() -> bool:

@@ -15,11 +15,11 @@ from typing import TYPE_CHECKING
 from fmpy import read_model_description, simulate_fmu
 
 from validators.core.gcs_client import download_file
-from vb_shared.fmi.envelopes import FMIOutputs
+from validibot_shared.fmi.envelopes import FMIOutputs
 
 
 if TYPE_CHECKING:
-    from vb_shared.fmi.envelopes import FMIInputEnvelope
+    from validibot_shared.fmi.envelopes import FMIInputEnvelope
 
 logger = logging.getLogger(__name__)
 

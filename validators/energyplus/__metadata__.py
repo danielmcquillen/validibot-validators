@@ -39,7 +39,7 @@ ENV_VARS = {
     },
 }
 
-# Supported input file types (MIME types from vb_shared.validations.envelopes)
+# Supported input file types (MIME types from validibot_shared.validations.envelopes)
 SUPPORTED_INPUT_TYPES = [
     "application/vnd.energyplus.idf",  # IDF text format
     "application/vnd.energyplus.epjson",  # epJSON format

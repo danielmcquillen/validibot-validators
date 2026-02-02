@@ -1,13 +1,36 @@
 # ==== Project metadata ====
 
 [project]
-name = "vb-validators"
+name = "validibot-validators"
 version = "0.1.2"
-description = "Validibot Cloud Run Job validator containers"
+description = "Validibot advanced validator containers (EnergyPlus, FMI)"
 readme = "README.md"
 requires-python = ">=3.13"
-license = { text = "Proprietary" }
-authors = [{ name = "Daniel McQuillen" }]
+license = { text = "AGPL-3.0-only" }
+authors = [
+    { name = "Daniel McQuillen", email = "daniel@validibot.com" },
+    { name = "McQuillen Interactive Pty. Ltd." },
+]
+keywords = [
+    "validibot",
+    "validation",
+    "energyplus",
+    "fmi",
+    "fmu",
+    "simulation",
+    "building-energy",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Quality Assurance",
+]
 
 # Core dependencies shared by all validators
 dependencies = [
@@ -17,8 +40,7 @@ dependencies = [
     "google-auth>=2.43.0",
     "requests>=2.32.0",
     "sentry-sdk>=2.47.0",
-    "vb-shared @ git+https://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:x-oauth-basic@github.com/danielmcquillen/vb_shared.git@main",
-
+    "validibot-shared",
 ]
 
 [project.optional-dependencies]
@@ -37,6 +59,12 @@ energyplus = [
 
 # FMI validator dependencies (for local dev/testing)
 fmi = ["fmpy>=0.3.20"]
+
+[project.urls]
+Homepage = "https://validibot.com"
+Documentation = "https://docs.validibot.com"
+Repository = "https://github.com/validibot/validibot-validators"
+Issues = "https://github.com/validibot/validibot-validators/issues"
 
 # ==== Build system ====
 
@@ -85,7 +113,7 @@ exclude_lines = [
 # ==== Ruff ====
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py313"
 line-length = 99
 src = ["validators"]
 
@@ -113,7 +141,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["validators", "vb_shared"]
+known-first-party = ["validators", "validibot_shared"]
 force-single-line = false
 lines-after-imports = 2
 
@@ -131,7 +159,7 @@ skip-magic-trailing-comma = false
 # ==== mypy ====
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.13"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true

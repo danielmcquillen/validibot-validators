@@ -7,6 +7,6 @@ Minimal Cloud Run Job container for FMI validators. It:
 3. Runs a short `fmpy.simulate_fmu` window with provided inputs
 4. Writes `output.json` back to GCS and POSTs the callback
 
-The container mirrors the contract defined in `vb_shared.fmi.envelopes`.
+The container mirrors the contract defined in `validibot_shared.fmi.envelopes`.
 Use the Django launcher to provide catalog-keyed inputs and callback info.
 

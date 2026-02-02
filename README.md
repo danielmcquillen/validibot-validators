@@ -145,7 +145,7 @@ Each validator container MUST:
 2. **Load input envelope** from storage:
    ```python
    from validators.core.envelope_loader import load_input_envelope
-   from vb_shared.energyplus.envelopes import EnergyPlusInputEnvelope
+   from validibot_shared.energyplus.envelopes import EnergyPlusInputEnvelope
 
    input_envelope = load_input_envelope(EnergyPlusInputEnvelope)
    ```
@@ -157,8 +157,8 @@ Each validator container MUST:
 
 4. **Create output envelope**:
    ```python
-   from vb_shared.energyplus.envelopes import EnergyPlusOutputEnvelope
-   from vb_shared.validations.envelopes import ValidationStatus
+   from validibot_shared.energyplus.envelopes import EnergyPlusOutputEnvelope
+   from validibot_shared.validations.envelopes import ValidationStatus
 
    output_envelope = EnergyPlusOutputEnvelope(
        run_id=input_envelope.run_id,
@@ -200,7 +200,7 @@ All validators depend on `vb_shared`:
 
 ```toml
 # In pyproject.toml
-vb-shared @ git+https://github.com/YOUR_ORG/vb_shared.git@main
+validibot-shared @ git+https://github.com/YOUR_ORG/validibot_shared.git@main
 ```
 
 ## Building Containers

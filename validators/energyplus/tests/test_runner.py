@@ -10,13 +10,13 @@ from validators.energyplus.main import (
     _infer_artifact_type,
     _rewrite_output_paths,
 )
-from vb_shared.energyplus.envelopes import EnergyPlusOutputs
-from vb_shared.energyplus.models import (
+from validibot_shared.energyplus.envelopes import EnergyPlusOutputs
+from validibot_shared.energyplus.models import (
     EnergyPlusSimulationLogs,
     EnergyPlusSimulationMetrics,
     EnergyPlusSimulationOutputs,
 )
-from vb_shared.validations.envelopes import ValidationArtifact
+from validibot_shared.validations.envelopes import ValidationArtifact
 
 
 def test_infer_artifact_type() -> None:
