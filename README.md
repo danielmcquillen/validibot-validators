@@ -18,7 +18,7 @@
 ---
 
 > [!NOTE]
-> This repository is part of the [Validibot](https://github.com/danielmcquillen/validibot) open-source data validation platform. These containers provide advanced validation capabilities that run in isolated Docker environments.
+> This repository is part of the Validibot open-source data validation platform. These containers provide advanced validation capabilities that run in isolated Docker environments.
 
 ---
 
@@ -26,16 +26,16 @@
 
 This repository is one component of the Validibot open-source data validation platform:
 
-| Repository                                                                                      | Description                                       |
-| ----------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| **[validibot](https://github.com/danielmcquillen/validibot)**                                   | Core platform — web UI, REST API, workflow engine |
-| **[validibot-cli](https://github.com/danielmcquillen/validibot-cli)**                           | Command-line interface                            |
-| **[validibot-validators](https://github.com/danielmcquillen/validibot-validators)** (this repo) | Advanced validator containers                     |
-| **[validibot-shared](https://github.com/danielmcquillen/validibot-shared)**                     | Shared Pydantic models for data interchange       |
+| Repository                          | Description                                       |
+| ----------------------------------- | ------------------------------------------------- |
+| **validibot**                       | Core platform — web UI, REST API, workflow engine |
+| **validibot-cli**                   | Command-line interface                            |
+| **validibot-validators** (this repo)| Advanced validator containers                     |
+| **validibot-shared**                | Shared Pydantic models for data interchange       |
 
 ## What are Validibot Validators?
 
-Validibot Validators are Docker containers that perform specialized, resource-intensive validations. Unlike Validibot's built-in validators (JSON Schema, XML Schema, etc.) that run directly in the Django process, advanced validators:
+Validibot Validators are Docker containers that perform specialized, resource-intensive data validations. Unlike Validibot's built-in validators (JSON Schema, XML Schema, etc.) that run directly in the Django process, advanced validators:
 
 - **Run in isolation** — Each validation runs in its own container with resource limits
 - **Have complex dependencies** — EnergyPlus, FMPy, and other domain-specific tools
@@ -66,30 +66,6 @@ After running validation, the container writes an output envelope with:
 - **Metrics** — Numeric results (e.g., EUI for building models)
 - **Artifacts** — Generated files (reports, logs, etc.)
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Validibot Core Platform                       │
-│                                                                  │
-│  1. Creates input envelope                                       │
-│  2. Uploads to storage (GCS or local)                           │
-│  3. Triggers validator container                                 │
-│  4. Waits for completion (sync or callback)                      │
-│  5. Processes output envelope                                    │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Validator Container                           │
-│                                                                  │
-│  1. Loads input envelope from storage                            │
-│  2. Downloads input files                                        │
-│  3. Runs validation/simulation                                   │
-│  4. Creates output envelope with results                         │
-│  5. Uploads output envelope                                      │
-│  6. Sends callback (if async mode)                               │
-└─────────────────────────────────────────────────────────────────┘
-```
-
 ## Quick Start
 
 ### Prerequisites
@@ -103,7 +79,7 @@ After running validation, the container writes an output envelope with:
 
 ```bash
 # Clone the repository
-git clone https://github.com/danielmcquillen/validibot-validators.git
+git clone <your-fork-or-clone-url>
 cd validibot-validators
 
 # Build a specific validator
@@ -159,15 +135,19 @@ Django Worker → Docker API → Validator Container → Local Storage
 - Local filesystem storage (`file://` URIs)
 - No callback needed — worker reads results directly
 
-### GCP Cloud Run Jobs
+### Cloud Deployment (Container Registry)
 
-For cloud deployments, validators run as Cloud Run Jobs:
+For cloud deployments, validators run as container jobs (e.g., Cloud Run Jobs, Kubernetes Jobs):
 
 ```bash
-# Build and push to Artifact Registry
+# Configure your container registry (see "Container Registry Setup" below)
+cp justfile.local.example justfile.local
+# Edit justfile.local with your registry details
+
+# Build and push to your container registry
 just build-push energyplus
 
-# Deploy to Cloud Run Jobs
+# Deploy to Cloud Run Jobs (GCP example)
 just deploy energyplus prod
 ```
 
@@ -179,9 +159,63 @@ Cloud Run Service → Cloud Tasks → Cloud Run Job → GCS Storage
 
 **Characteristics:**
 
-- Asynchronous execution (triggered via Cloud Tasks)
-- GCS storage (`gs://` URIs)
+- Asynchronous execution (triggered via task queue)
+- Cloud storage (`gs://` URIs for GCP, `s3://` for AWS, etc.)
 - HTTP callback when complete
+
+## Container Registry Setup
+
+To build and push validator containers, you need access to a container registry that Validibot can pull from at runtime.
+
+### Supported Registries
+
+- **Google Artifact Registry** (recommended for GCP deployments)
+- **AWS Elastic Container Registry (ECR)**
+- **Docker Hub**
+- **GitHub Container Registry (ghcr.io)**
+- **Self-hosted registries**
+
+### Configuration
+
+1. **Copy the example configuration:**
+   ```bash
+   cp justfile.local.example justfile.local
+   ```
+
+2. **Edit `justfile.local`** with your registry details:
+   ```just
+   # Example for Google Artifact Registry
+   registry_host := "us-central1-docker.pkg.dev"
+   registry_repo := "my-project/validibot"
+
+   # Example for Docker Hub
+   # registry_host := "docker.io"
+   # registry_repo := "myorg"
+
+   # Example for GitHub Container Registry
+   # registry_host := "ghcr.io"
+   # registry_repo := "myorg/validibot"
+   ```
+
+3. **Authenticate** with your registry:
+   ```bash
+   # GCP Artifact Registry
+   gcloud auth configure-docker us-central1-docker.pkg.dev
+
+   # Docker Hub
+   docker login
+
+   # GitHub Container Registry
+   echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
+   ```
+
+4. **Build and push:**
+   ```bash
+   just build-push energyplus
+   ```
+
+> [!IMPORTANT]
+> The `justfile.local` file is gitignored and contains your personal/organization registry configuration. Never commit registry credentials or project-specific paths to the repository.
 
 ## Configuration
 
