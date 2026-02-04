@@ -2,55 +2,59 @@
 # Local Configuration for Validibot Validators
 # =============================================================================
 #
-# Copy this file to justfile.local and customize for your environment.
-# justfile.local is gitignored and should never be committed.
+# This file documents the environment variables needed to build and push
+# containers to your registry.
 #
-# This file is imported by the main justfile and provides your personal/org
-# container registry configuration.
+# SETUP:
+#   Add these exports to your shell profile (~/.bashrc, ~/.zshrc, etc.)
+#   or to a local .env file that you source before running just commands.
 #
 # =============================================================================
 
-# =============================================================================
-# Container Registry Configuration
-# =============================================================================
+# Required: Your GCP project ID (for Artifact Registry and Cloud Run)
+export VALIDIBOT_GCP_PROJECT="your-gcp-project-id"
 
-# Your GCP project ID (for Artifact Registry and Cloud Run)
-gcp_project := "your-gcp-project-id"
-
-# GCP region for Artifact Registry and Cloud Run Jobs
-gcp_region := "us-central1"
+# Optional: GCP region (defaults to us-central1)
+export VALIDIBOT_GCP_REGION="us-central1"
 
 # =============================================================================
-# Alternative Registry Examples
+# Usage Examples
 # =============================================================================
 
-# --- Google Artifact Registry (default) ---
-# gcp_project := "my-project-12345"
-# gcp_region := "us-central1"
-# The justfile will construct: us-central1-docker.pkg.dev/my-project-12345/validibot
+# Option 1: Set in shell profile for persistent configuration
+#   echo 'export VALIDIBOT_GCP_PROJECT="my-project-12345"' >> ~/.zshrc
+#   echo 'export VALIDIBOT_GCP_REGION="us-central1"' >> ~/.zshrc
+#   source ~/.zshrc
 
-# --- Docker Hub ---
-# To use Docker Hub instead, you would need to modify the justfile's ar_host
-# and ar_repo variables. Example values:
-# registry_host := "docker.io"
-# registry_repo := "myorg"  # Results in: docker.io/myorg/validibot-validator-energyplus
+# Option 2: Set temporarily for a single session
+#   export VALIDIBOT_GCP_PROJECT="my-project-12345"
+#   just build-push energyplus
 
-# --- GitHub Container Registry ---
-# registry_host := "ghcr.io"
-# registry_repo := "myorg/validibot"  # Results in: ghcr.io/myorg/validibot/validibot-validator-energyplus
+# Option 3: Inline with the command
+#   VALIDIBOT_GCP_PROJECT="my-project-12345" just build-push energyplus
 
-# --- AWS ECR ---
-# registry_host := "123456789.dkr.ecr.us-east-1.amazonaws.com"
-# registry_repo := "validibot"
+# Option 4: Using just's --set flag
+#   just --set gcp_project "my-project-12345" build-push energyplus
 
 # =============================================================================
-# Cloud Run Jobs Configuration (GCP-specific)
+# Alternative Registries
 # =============================================================================
 
-# Service accounts follow the pattern:
-# validibot-cloudrun-{stage}@{gcp_project}.iam.gserviceaccount.com
+# The default configuration targets Google Artifact Registry. For other
+# registries (Docker Hub, GitHub Container Registry, AWS ECR), you'll need
+# to modify the justfile's ar_host and ar_repo variables directly, or
+# create a fork with your preferred registry configuration.
 #
-# Ensure these service accounts exist and have the required permissions:
-# - Storage Object Viewer (for reading input files)
-# - Storage Object Creator (for writing output files)
-# - Cloud Run Invoker (for callbacks, if using Cloud Run services)
+# Examples of what the registry URL looks like:
+#
+# Google Artifact Registry:
+#   us-central1-docker.pkg.dev/my-project/validibot/validibot-validator-energyplus
+#
+# Docker Hub:
+#   docker.io/myorg/validibot-validator-energyplus
+#
+# GitHub Container Registry:
+#   ghcr.io/myorg/validibot-validator-energyplus
+#
+# AWS ECR:
+#   123456789.dkr.ecr.us-east-1.amazonaws.com/validibot-validator-energyplus

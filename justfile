@@ -120,20 +120,19 @@ build-all:
 
 # Build and push a validator to Artifact Registry in one step
 # Uses buildx with --push to avoid platform manifest issues on Apple Silicon
-# Requires justfile.local configuration (see justfile.local.example)
+# Requires VALIDIBOT_GCP_PROJECT environment variable to be set
 build-push validator:
     #!/usr/bin/env bash
     set -euo pipefail
-    if [[ "{{gcp_project}}" == "your-gcp-project-id" ]]; then
+    if [[ -z "{{gcp_project}}" ]]; then
         echo "Error: Container registry not configured."
         echo ""
-        echo "Please create justfile.local with your registry settings:"
-        echo "  cp justfile.local.example justfile.local"
-        echo "  # Edit justfile.local with your GCP project and region"
-        echo ""
-        echo "Or set environment variables:"
+        echo "Set environment variables before running:"
         echo "  export VALIDIBOT_GCP_PROJECT=your-project-id"
-        echo "  export VALIDIBOT_GCP_REGION=us-central1"
+        echo "  export VALIDIBOT_GCP_REGION=us-central1  # optional, defaults to us-central1"
+        echo ""
+        echo "Or pass directly:"
+        echo "  just --set gcp_project your-project-id build-push {{validator}}"
         exit 1
     fi
     echo "Building and pushing {{validator}} container..."

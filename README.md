@@ -140,9 +140,8 @@ Django Worker → Docker API → Validator Container → Local Storage
 For cloud deployments, validators run as container jobs (e.g., Cloud Run Jobs, Kubernetes Jobs):
 
 ```bash
-# Configure your container registry (see "Container Registry Setup" below)
-cp justfile.local.example justfile.local
-# Edit justfile.local with your registry details
+# Set your GCP project (see "Container Registry Setup" below)
+export VALIDIBOT_GCP_PROJECT="your-project-id"
 
 # Build and push to your container registry
 just build-push energyplus
@@ -175,50 +174,37 @@ To build and push validator containers, you need access to a container registry 
 - **GitHub Container Registry (ghcr.io)**
 - **Self-hosted registries**
 
-### Configuration
+### Configuration (GCP Artifact Registry)
 
-1. **Copy the example configuration:**
+1. **Set environment variables** for your GCP project:
 
    ```bash
-   cp justfile.local.example justfile.local
+   # Add to your shell profile (~/.zshrc, ~/.bashrc, etc.)
+   export VALIDIBOT_GCP_PROJECT="your-gcp-project-id"
+   export VALIDIBOT_GCP_REGION="us-central1"  # optional, defaults to us-central1
    ```
 
-2. **Edit `justfile.local`** with your registry details:
-
-   ```just
-   # Example for Google Artifact Registry
-   registry_host := "us-central1-docker.pkg.dev"
-   registry_repo := "my-project/validibot"
-
-   # Example for Docker Hub
-   # registry_host := "docker.io"
-   # registry_repo := "myorg"
-
-   # Example for GitHub Container Registry
-   # registry_host := "ghcr.io"
-   # registry_repo := "myorg/validibot"
-   ```
-
-3. **Authenticate** with your registry:
+2. **Authenticate** with your registry:
 
    ```bash
    # GCP Artifact Registry
    gcloud auth configure-docker us-central1-docker.pkg.dev
-
-   # Docker Hub
-   docker login
-
-   # GitHub Container Registry
-   echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
    ```
 
-4. **Build and push:**
+3. **Build and push:**
    ```bash
    just build-push energyplus
    ```
 
+   Or pass the project inline:
+   ```bash
+   VALIDIBOT_GCP_PROJECT="my-project" just build-push energyplus
+   ```
+
+See [justfile.local.example](justfile.local.example) for more configuration options and alternative registry examples.
+
 > [!IMPORTANT]
-> The `justfile.local` file is gitignored and contains your personal/organization registry configuration. Never commit registry credentials or project-specific paths to the repository.
+> Never commit registry credentials or project-specific configuration to the repository. Use environment variables or your shell profile for personal settings.
 
 ## Configuration
 
