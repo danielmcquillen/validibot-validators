@@ -1,17 +1,17 @@
 # EnergyPlus Validator Container
 
-Cloud Run Job container for running EnergyPlus simulations as part of validation workflows.
+Container for running EnergyPlus simulations as part of validation workflows. Can be deployed as a Cloud Run Job, Kubernetes Job, or run locally via Docker.
 
 ## Overview
 
 This container:
-1. Downloads `input.json` (EnergyPlusInputEnvelope) from GCS
-2. Downloads IDF/epJSON model and EPW weather files from GCS
+1. Downloads `input.json` (EnergyPlusInputEnvelope) from storage
+2. Downloads IDF/epJSON model and EPW weather files from storage
 3. Runs EnergyPlus simulation
 4. Extracts metrics from SQL database
 5. Creates `output.json` (EnergyPlusOutputEnvelope) with results
-6. Uploads output.json to GCS
-7. POSTs callback to Django
+6. Uploads output.json to storage
+7. POSTs callback to the Validibot platform (cloud mode) or exits (local mode)
 
 ## Container Interface
 
@@ -20,7 +20,7 @@ This container:
 - `VALIDIBOT_INPUT_URI` (required): Storage URI to input.json (e.g., `gs://bucket/org_id/run_id/input.json` or `file:///app/storage/runs/run_id/input.json`)
 - `VALIDIBOT_OUTPUT_URI` (optional): Where to write output.json (derived from input if not set)
 - `VALIDIBOT_RUN_ID` (optional): Validation run ID for logging
-- `GOOGLE_CLOUD_PROJECT`: GCP project ID (auto-set by Cloud Run)
+- `GOOGLE_CLOUD_PROJECT`: GCP project ID (auto-set by Cloud Run when deployed to GCP)
 
 ### Input Envelope Structure
 
@@ -128,14 +128,21 @@ This container:
 
 ## Building and Deploying
 
-Use the justfile commands from the `vb_validators` root:
+Use the justfile commands from the repository root:
 
 ```bash
 # Build container locally
 just build energyplus
 
-# Build and deploy to Cloud Run
-just deploy energyplus
+# Configure your container registry (one-time setup)
+cp justfile.local.example justfile.local
+# Edit justfile.local with your registry details
+
+# Build and push to your container registry
+just build-push energyplus
+
+# Deploy to Cloud Run Jobs (GCP)
+just deploy energyplus prod
 
 # View logs
 just logs energyplus
@@ -144,9 +151,10 @@ just logs energyplus
 ### Execute Job (for testing)
 
 ```bash
+# Replace with your region and bucket
 gcloud run jobs execute validibot-validator-energyplus \
-  --region australia-southeast1 \
-  --update-env-vars VALIDIBOT_INPUT_URI=gs://bucket/test/input.json
+  --region <your-region> \
+  --update-env-vars VALIDIBOT_INPUT_URI=gs://<your-bucket>/test/input.json
 ```
 
 ## Local Development

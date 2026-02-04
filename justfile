@@ -10,6 +10,11 @@
 #   just test                   # Run all tests
 #   just deploy energyplus dev  # Deploy to dev stage
 #
+# SETUP:
+#   Before using build-push or deploy commands, create your local config:
+#     cp justfile.local.example justfile.local
+#     # Edit justfile.local with your registry details
+#
 # DEPLOYMENT:
 #   This justfile handles the full deployment lifecycle. You can also use
 #   the main validibot justfile (../validibot/justfile) which has equivalent
@@ -26,11 +31,16 @@ set shell := ["bash", "-cu"]
 # Configuration
 # =============================================================================
 
-# GCP defaults (override with: just --set gcp_project "my-project" deploy energyplus dev)
-gcp_project := "project-a509c806-3e21-4fbc-b19"
-gcp_region := "australia-southeast1"
+# Import local configuration (contains registry credentials/project IDs)
+# Create justfile.local from justfile.local.example with your settings
+import? 'justfile.local'
 
-# Artifact Registry path
+# GCP defaults - override in justfile.local or via command line:
+#   just --set gcp_project "my-project" deploy energyplus dev
+gcp_project := env("VALIDIBOT_GCP_PROJECT", "your-gcp-project-id")
+gcp_region := env("VALIDIBOT_GCP_REGION", "us-central1")
+
+# Artifact Registry path (constructed from GCP settings)
 ar_host := gcp_region + "-docker.pkg.dev"
 ar_repo := ar_host + "/" + gcp_project + "/validibot"
 
@@ -111,8 +121,23 @@ build-all:
 
 # Build and push a validator to Artifact Registry in one step
 # Uses buildx with --push to avoid platform manifest issues on Apple Silicon
+# Requires justfile.local configuration (see justfile.local.example)
 build-push validator:
-    @echo "Building and pushing {{validator}} container..."
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ "{{gcp_project}}" == "your-gcp-project-id" ]]; then
+        echo "Error: Container registry not configured."
+        echo ""
+        echo "Please create justfile.local with your registry settings:"
+        echo "  cp justfile.local.example justfile.local"
+        echo "  # Edit justfile.local with your GCP project and region"
+        echo ""
+        echo "Or set environment variables:"
+        echo "  export VALIDIBOT_GCP_PROJECT=your-project-id"
+        echo "  export VALIDIBOT_GCP_REGION=us-central1"
+        exit 1
+    fi
+    echo "Building and pushing {{validator}} container..."
     docker buildx build \
         --platform linux/amd64 \
         --push \
@@ -120,7 +145,7 @@ build-push validator:
         -t {{ar_repo}}/validibot-validator-{{validator}}:latest \
         -t {{ar_repo}}/validibot-validator-{{validator}}:{{git_sha}} \
         .
-    @echo "✓ Built and pushed {{ar_repo}}/validibot-validator-{{validator}}:{{git_sha}}"
+    echo "✓ Built and pushed {{ar_repo}}/validibot-validator-{{validator}}:{{git_sha}}"
 
 # Build and push all validators
 build-push-all:

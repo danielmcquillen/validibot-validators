@@ -1,0 +1,56 @@
+# =============================================================================
+# Local Configuration for Validibot Validators
+# =============================================================================
+#
+# Copy this file to justfile.local and customize for your environment.
+# justfile.local is gitignored and should never be committed.
+#
+# This file is imported by the main justfile and provides your personal/org
+# container registry configuration.
+#
+# =============================================================================
+
+# =============================================================================
+# Container Registry Configuration
+# =============================================================================
+
+# Your GCP project ID (for Artifact Registry and Cloud Run)
+gcp_project := "your-gcp-project-id"
+
+# GCP region for Artifact Registry and Cloud Run Jobs
+gcp_region := "us-central1"
+
+# =============================================================================
+# Alternative Registry Examples
+# =============================================================================
+
+# --- Google Artifact Registry (default) ---
+# gcp_project := "my-project-12345"
+# gcp_region := "us-central1"
+# The justfile will construct: us-central1-docker.pkg.dev/my-project-12345/validibot
+
+# --- Docker Hub ---
+# To use Docker Hub instead, you would need to modify the justfile's ar_host
+# and ar_repo variables. Example values:
+# registry_host := "docker.io"
+# registry_repo := "myorg"  # Results in: docker.io/myorg/validibot-validator-energyplus
+
+# --- GitHub Container Registry ---
+# registry_host := "ghcr.io"
+# registry_repo := "myorg/validibot"  # Results in: ghcr.io/myorg/validibot/validibot-validator-energyplus
+
+# --- AWS ECR ---
+# registry_host := "123456789.dkr.ecr.us-east-1.amazonaws.com"
+# registry_repo := "validibot"
+
+# =============================================================================
+# Cloud Run Jobs Configuration (GCP-specific)
+# =============================================================================
+
+# Service accounts follow the pattern:
+# validibot-cloudrun-{stage}@{gcp_project}.iam.gserviceaccount.com
+#
+# Ensure these service accounts exist and have the required permissions:
+# - Storage Object Viewer (for reading input files)
+# - Storage Object Creator (for writing output files)
+# - Cloud Run Invoker (for callbacks, if using Cloud Run services)
