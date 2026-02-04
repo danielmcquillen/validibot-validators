@@ -64,6 +64,3 @@ temp/
 .env
 .env.*
 !.env.example
-
-# Local justfile configuration (contains registry credentials/project IDs)
-justfile.local

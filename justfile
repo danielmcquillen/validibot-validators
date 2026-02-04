@@ -31,13 +31,12 @@ set shell := ["bash", "-cu"]
 # Configuration
 # =============================================================================
 
-# Import local configuration (contains registry credentials/project IDs)
-# Create justfile.local from justfile.local.example with your settings
-import? 'justfile.local'
-
-# GCP defaults - override in justfile.local or via command line:
+# GCP settings - configure via environment variables or command line:
+#   export VALIDIBOT_GCP_PROJECT=my-project
+#   export VALIDIBOT_GCP_REGION=us-central1
+# Or:
 #   just --set gcp_project "my-project" deploy energyplus dev
-gcp_project := env("VALIDIBOT_GCP_PROJECT", "your-gcp-project-id")
+gcp_project := env("VALIDIBOT_GCP_PROJECT", "")
 gcp_region := env("VALIDIBOT_GCP_REGION", "us-central1")
 
 # Artifact Registry path (constructed from GCP settings)
