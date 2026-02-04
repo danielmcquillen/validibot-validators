@@ -22,6 +22,17 @@
 
 ---
 
+## Part of the Validibot Project
+
+This repository is one component of the Validibot open-source data validation platform:
+
+| Repository                                                                                      | Description                                       |
+| ----------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| **[validibot](https://github.com/danielmcquillen/validibot)**                                   | Core platform — web UI, REST API, workflow engine |
+| **[validibot-cli](https://github.com/danielmcquillen/validibot-cli)**                           | Command-line interface                            |
+| **[validibot-validators](https://github.com/danielmcquillen/validibot-validators)** (this repo) | Advanced validator containers                     |
+| **[validibot-shared](https://github.com/danielmcquillen/validibot-shared)**                     | Shared Pydantic models for data interchange       |
+
 ## What are Validibot Validators?
 
 Validibot Validators are Docker containers that perform specialized, resource-intensive validations. Unlike Validibot's built-in validators (JSON Schema, XML Schema, etc.) that run directly in the Django process, advanced validators:
@@ -385,17 +396,6 @@ Every validator container must follow this contract:
 7. **POST callback** (GCP mode only) or exit (self-hosted mode)
 
 The `validators.core` module provides helpers for steps 2, 5, 6, and 7.
-
-## Part of the Validibot Project
-
-This repository is one component of the Validibot open-source data validation platform:
-
-| Repository                                                                                      | Description                                       |
-| ----------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| **[validibot](https://github.com/danielmcquillen/validibot)**                                   | Core platform — web UI, REST API, workflow engine |
-| **[validibot-cli](https://github.com/danielmcquillen/validibot-cli)**                           | Command-line interface                            |
-| **[validibot-validators](https://github.com/danielmcquillen/validibot-validators)** (this repo) | Advanced validator containers                     |
-| **[validibot-shared](https://github.com/danielmcquillen/validibot-shared)**                     | Shared Pydantic models for data interchange       |
 
 ### How It Fits Together
 
