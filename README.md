@@ -26,12 +26,12 @@
 
 This repository is one component of the Validibot open-source data validation platform:
 
-| Repository                           | Description                                       |
-| ------------------------------------ | ------------------------------------------------- |
-| **validibot**                        | Core platform — web UI, REST API, workflow engine |
-| **validibot-cli**                    | Command-line interface                            |
-| **validibot-validators** (this repo) | Advanced validator containers                     |
-| **validibot-shared**                 | Shared Pydantic models for data interchange       |
+| Repository                                                                                       | Description                                       |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------- |
+| **[validibot](https://github.com/danielmcquillen/validibot)**                                    | Core platform — web UI, REST API, workflow engine |
+| **[validibot-cli](https://github.com/danielmcquillen/validibot-cli)**                            | Command-line interface                            |
+| **[validibot-validators](https://github.com/danielmcquillen/validibot-validators)** (this repo)  | Advanced validator containers                     |
+| **[validibot-shared](https://github.com/danielmcquillen/validibot-shared)**                      | Shared Pydantic models for data interchange       |
 
 ## What are Validibot Validators?
 
@@ -42,7 +42,7 @@ Validibot Validators are Docker containers that perform specialized, resource-in
 - **Are secure by default** — Network isolation, memory limits, and automatic cleanup
 - **Scale independently** — Can run on separate infrastructure from the core platform
 
-The core Validibot platform triggers these containers, passes input via the standardized envelope format (defined in validibot-shared), and processes the results when complete.
+The core Validibot platform triggers these containers, passes input via the standardized envelope format (defined in [validibot-shared](https://github.com/danielmcquillen/validibot-shared)), and processes the results when complete.
 
 ## Available Validators
 
@@ -79,7 +79,7 @@ After running validation, the container writes an output envelope with:
 
 ```bash
 # Clone the repository
-git clone <your-fork-or-clone-url>
+git clone https://github.com/danielmcquillen/validibot-validators.git
 cd validibot-validators
 
 # Build a specific validator
@@ -305,7 +305,7 @@ def get_metadata():
 
 ### 3. Create Typed Envelopes
 
-In validibot-shared, define your typed envelopes:
+In [validibot-shared](https://github.com/danielmcquillen/validibot-shared), define your typed envelopes:
 
 ```python
 # validibot_shared/myvalidator/envelopes.py
@@ -453,7 +453,7 @@ The `validators.core` module provides helpers for steps 2, 5, 6, and 7.
 
 ```bash
 # Clone the repository
-git clone <your-fork-or-clone-url>
+git clone https://github.com/danielmcquillen/validibot-validators.git
 cd validibot-validators
 
 # Install dependencies
@@ -472,3 +472,13 @@ uv run pytest
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+<div align="center">
+
+[Validibot Platform](https://github.com/danielmcquillen/validibot) •
+[Documentation](https://docs.validibot.com) •
+[Report Issues](https://github.com/danielmcquillen/validibot-validators/issues)
+
+</div>
