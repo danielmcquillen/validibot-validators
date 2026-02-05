@@ -128,7 +128,10 @@ def _download_input_files(
     work_dir: Path,
 ) -> tuple[Path, Path]:
     """
-    Download input files from GCS to working directory.
+    Download input files and resource files to working directory.
+
+    Input files (submission data) come from input_envelope.input_files.
+    Resource files (weather, etc.) come from input_envelope.resource_files.
 
     Args:
         input_envelope: Input envelope with file URIs
@@ -138,35 +141,59 @@ def _download_input_files(
         Tuple of (primary model file, weather file)
 
     Raises:
-        ValueError: If primary model file is missing
+        ValueError: If primary model file or weather file is missing
     """
     model_file = None
     weather_file = None
 
+    # Download input files (submission data)
     for file_item in input_envelope.input_files:
-        logger.info("Downloading %s (role=%s)", file_item.name, file_item.role)
+        logger.info("Downloading input file: %s (role=%s)", file_item.name, file_item.role)
 
         destination = work_dir / file_item.name
-        try:
-            download_file(file_item.uri, destination)
-        except ValueError as exc:
-            if file_item.role == "weather":
-                raise ValueError(
-                    f"Weather file missing or unreadable at {file_item.uri}",
-                ) from exc
-            raise
+        download_file(file_item.uri, destination)
 
         # Track primary model file
         if file_item.role == "primary-model":
             model_file = destination
+        # Legacy: also check input_files for weather (backwards compatibility)
         if file_item.role == "weather":
+            weather_file = destination
+
+    # Download resource files (weather, libraries, etc.)
+    resource_files = getattr(input_envelope, "resource_files", []) or []
+    for resource in resource_files:
+        logger.info(
+            "Downloading resource file: %s (type=%s)",
+            resource.id,
+            resource.type,
+        )
+
+        # Determine filename from URI
+        uri_path = resource.uri.split("/")[-1]
+        destination = work_dir / uri_path
+
+        try:
+            download_file(resource.uri, destination)
+        except ValueError as exc:
+            if resource.type == "energyplus_weather":
+                raise ValueError(
+                    f"Weather file missing or unreadable at {resource.uri}",
+                ) from exc
+            raise
+
+        # Track weather file from resource_files
+        if resource.type == "energyplus_weather":
             weather_file = destination
 
     if model_file is None:
         raise ValueError("No primary-model file found in input_files")
 
     if weather_file is None:
-        raise ValueError("No weather file found in input_files")
+        raise ValueError(
+            "No weather file found. Provide weather via resource_files "
+            "(type='energyplus_weather') or input_files (role='weather')."
+        )
 
     return model_file, weather_file
 
