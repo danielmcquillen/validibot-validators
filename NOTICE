@@ -14,65 +14,63 @@ THIRD-PARTY COMPONENTS
 
 This software includes the following third-party components:
 
-Python Dependencies
--------------------
+## Python Dependencies
 
 Pydantic
-  Copyright (c) 2017-2024 Samuel Colvin and other contributors
-  Licensed under the MIT License
-  https://github.com/pydantic/pydantic
+Copyright (c) 2017-2024 Samuel Colvin and other contributors
+Licensed under the MIT License
+https://github.com/pydantic/pydantic
 
 httpx
-  Copyright (c) 2019 Tom Christie
-  Licensed under the BSD 3-Clause License
-  https://github.com/encode/httpx
+Copyright (c) 2019 Tom Christie
+Licensed under the BSD 3-Clause License
+https://github.com/encode/httpx
 
 google-cloud-storage
-  Copyright (c) Google LLC
-  Licensed under the Apache License 2.0
-  https://github.com/googleapis/python-storage
+Copyright (c) Google LLC
+Licensed under the Apache License 2.0
+https://github.com/googleapis/python-storage
 
 google-auth
-  Copyright (c) Google LLC
-  Licensed under the Apache License 2.0
-  https://github.com/googleapis/google-auth-library-python
+Copyright (c) Google LLC
+Licensed under the Apache License 2.0
+https://github.com/googleapis/google-auth-library-python
 
 requests
-  Copyright (c) Kenneth Reitz and contributors
-  Licensed under the Apache License 2.0
-  https://github.com/psf/requests
+Copyright (c) Kenneth Reitz and contributors
+Licensed under the Apache License 2.0
+https://github.com/psf/requests
 
 sentry-sdk
-  Copyright (c) Sentry (Functional Software, Inc.)
-  Licensed under the MIT License
-  https://github.com/getsentry/sentry-python
+Copyright (c) Sentry (Functional Software, Inc.)
+Licensed under the MIT License
+https://github.com/getsentry/sentry-python
 
 validibot-shared
-  Copyright (c) McQuillen Interactive Pty. Ltd.
-  Licensed under the MIT License
-  https://github.com/validibot/validibot-shared
+Copyright (c) McQuillen Interactive Pty. Ltd.
+Licensed under the MIT License
+https://github.com/danielmcquillen/validibot-shared
 
 FMPy (optional, for FMI validator)
-  Copyright (c) Dassault Systèmes
-  Licensed under the BSD 2-Clause License
-  https://github.com/CATIA-Systems/FMPy
+Copyright (c) Dassault Systèmes
+Licensed under the BSD 2-Clause License
+https://github.com/CATIA-Systems/FMPy
 
-External Software (used in Docker images)
------------------------------------------
+## External Software (used in Docker images)
 
 EnergyPlus
-  Copyright (c) Alliance for Sustainable Energy, LLC and other contributors
-  EnergyPlus is open source software distributed under a BSD-style license
-  https://energyplus.net/
-  https://github.com/NREL/EnergyPlus
+Copyright (c) Alliance for Sustainable Energy, LLC and other contributors
+EnergyPlus is open source software distributed under a BSD-style license
+https://energyplus.net/
+https://github.com/NREL/EnergyPlus
 
-  Note: EnergyPlus is developed by the U.S. Department of Energy's Building
-  Technologies Office and managed by the National Renewable Energy Laboratory
-  (NREL). It is not included in this repository but is downloaded during
-  Docker image build.
+Note: EnergyPlus is developed by the U.S. Department of Energy's Building
+Technologies Office and managed by the National Renewable Energy Laboratory
+(NREL). It is not included in this repository but is downloaded during
+Docker image build.
 
 Python Runtime
-  Python Software Foundation License
-  https://www.python.org/
+Python Software Foundation License
+https://www.python.org/
 
 Each component is subject to its own license terms.

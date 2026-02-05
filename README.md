@@ -8,9 +8,9 @@
 [![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://www.docker.com/)
 
-[Available Validators](#available-validators) •
+[Available Advanced Validators](#available-validators) •
 [Quick Start](#quick-start) •
-[Creating Custom Validators](#creating-a-custom-validator) •
+[Creating Custom Advanced Validators](#creating-a-custom-validator) •
 [Deployment](#deployment)
 
 </div>
@@ -26,25 +26,25 @@
 
 This repository is one component of the Validibot open-source data validation platform:
 
-| Repository                                                                                       | Description                                       |
-| ------------------------------------------------------------------------------------------------ | ------------------------------------------------- |
-| **[validibot](https://github.com/danielmcquillen/validibot)**                                    | Core platform — web UI, REST API, workflow engine |
-| **[validibot-cli](https://github.com/danielmcquillen/validibot-cli)**                            | Command-line interface                            |
-| **[validibot-validators](https://github.com/danielmcquillen/validibot-validators)** (this repo)  | Advanced validator containers                     |
-| **[validibot-shared](https://github.com/danielmcquillen/validibot-shared)**                      | Shared Pydantic models for data interchange       |
+| Repository                                                                                      | Description                                       |
+| ----------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| **[validibot](https://github.com/danielmcquillen/validibot)**                                   | Core platform — web UI, REST API, workflow engine |
+| **[validibot-cli](https://github.com/danielmcquillen/validibot-cli)**                           | Command-line interface                            |
+| **[validibot-validators](https://github.com/danielmcquillen/validibot-validators)** (this repo) | Advanced validator containers                     |
+| **[validibot-shared](https://github.com/danielmcquillen/validibot-shared)**                     | Shared Pydantic models for data interchange       |
 
-## What are Validibot Validators?
+## What are Validibot Advanced Validators?
 
-Validibot Validators are Docker containers that perform specialized, resource-intensive data validations. Unlike Validibot's built-in "simple" validators (JSON Schema, XML Schema, etc.) that run directly in the Django process, advanced validators:
+Validibot "Advanced Validators" are Docker containers that perform specialized, resource-intensive data validations within the Validibot app. Unlike Validibot's built-in "simple" validators (JSON Schema, XML Schema, etc.) that run directly in the Django process, advanced validators:
 
-- **Run in isolation** — Each validation runs in its own container with resource limits
+- **Run in isolation** — Each advanced validation runs in its own container with resource limits
 - **Have complex dependencies** — EnergyPlus, FMPy, and other domain-specific tools
 - **Are secure by default** — Network isolation, memory limits, and automatic cleanup
 - **Scale independently** — Can run on separate infrastructure from the core platform
 
 The core Validibot platform triggers these containers, passes input via the standardized envelope format (defined in [validibot-shared](https://github.com/danielmcquillen/validibot-shared)), and processes the results when complete.
 
-## Available Validators
+## Available Advanced Validators
 
 | Validator      | Description                                    | Use Cases                                                        |
 | -------------- | ---------------------------------------------- | ---------------------------------------------------------------- |
@@ -53,7 +53,7 @@ The core Validibot platform triggers these containers, passes input via the stan
 
 ## How It Works
 
-Validators receive work via a standardized "envelope" containing:
+Advaned validators receive work via a standardized "envelope" containing:
 
 - **Input files** — URIs to files being validated (GCS or local filesystem)
 - **Configuration** — Validator-specific settings (e.g., simulation timestep)
@@ -107,11 +107,11 @@ just test-validator energyplus
 
 ## Deployment Modes
 
-Validators support two deployment modes:
+Advanced validators support two deployment modes:
 
 ### Self-Hosted (Docker)
 
-For self-hosted Validibot deployments, validators run as local Docker containers:
+For self-hosted Validibot deployments, advanced validators run as local Docker containers:
 
 ```bash
 # Build the container
@@ -137,7 +137,7 @@ Django Worker → Docker API → Validator Container → Local Storage
 
 ### Cloud Deployment (Container Registry)
 
-For cloud deployments, validators run as container jobs (e.g., Cloud Run Jobs, Kubernetes Jobs):
+For cloud deployments, advanced validators run as container jobs (e.g., Cloud Run Jobs, Kubernetes Jobs):
 
 ```bash
 # Set your GCP project (see "Container Registry Setup" below)
@@ -192,11 +192,13 @@ To build and push validator containers, you need access to a container registry 
    ```
 
 3. **Build and push:**
+
    ```bash
    just build-push energyplus
    ```
 
    Or pass the project inline:
+
    ```bash
    VALIDIBOT_GCP_PROJECT="my-project" just build-push energyplus
    ```
@@ -210,7 +212,7 @@ See [justfile.local.example](justfile.local.example) for more configuration opti
 
 ### Environment Variables
 
-Validators receive configuration via environment variables:
+Advanced validators receive configuration via environment variables:
 
 | Variable               | Required | Description                                           |
 | ---------------------- | -------- | ----------------------------------------------------- |
@@ -220,7 +222,7 @@ Validators receive configuration via environment variables:
 
 ### Storage URIs
 
-Validators support two storage backends:
+Advanced validators support two storage backends:
 
 ```
 # Google Cloud Storage (GCP deployments)
@@ -232,7 +234,7 @@ file:///app/storage/private/runs/org-123/run-456/input.json
 
 ### Django Configuration
 
-Configure the core platform to use Docker validators:
+Configure the core platform to use Docker-based advanced validators:
 
 ```python
 # settings/local.py or settings/production.py
@@ -274,7 +276,7 @@ validibot-validators/
 
 ## Creating a Custom Validator
 
-You can create custom validators for domain-specific validation needs.
+You can create custom advanced validators for domain-specific validation needs.
 
 ### 1. Create Validator Directory
 
