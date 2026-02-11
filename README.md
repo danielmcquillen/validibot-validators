@@ -92,6 +92,19 @@ just build-all
 just --list
 ```
 
+> [!IMPORTANT]
+> **After updating dependencies (especially `validibot-shared`):**
+>
+> Docker caches build layers including pip install results. When you update a dependency version in `uv.lock`, a normal build may reuse cached layers with the old package version.
+>
+> To ensure the new version is installed, use `--no-cache`:
+>
+> ```bash
+> docker buildx build --no-cache -f validators/energyplus/Dockerfile -t validibot-validator-energyplus:latest .
+> ```
+>
+> Signs that cached layers are being used: build output shows `CACHED` for the pip install step, and your changes don't take effect at runtime.
+
 ### Running Tests
 
 ```bash
@@ -470,6 +483,13 @@ uv run mypy validators/
 # Run tests
 uv run pytest
 ```
+
+## Acknowledgments
+
+These validators build on excellent open-source projects:
+
+- [EnergyPlus](https://energyplus.net/) — Whole building energy simulation (U.S. Department of Energy / NREL, BSD-3-Clause)
+- [FMPy](https://github.com/CATIA-Systems/FMPy) — FMU simulation in Python (Dassault Systèmes, BSD-3-Clause)
 
 ## License
 

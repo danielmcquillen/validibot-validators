@@ -6,7 +6,7 @@ version = "0.2.0"
 description = "Validibot advanced validator containers (EnergyPlus, FMI)"
 readme = "README.md"
 requires-python = ">=3.13"
-license = { text = "AGPL-3.0-only" }
+license = { text = "MIT" }
 authors = [
     { name = "Daniel McQuillen", email = "daniel@validibot.com" },
     { name = "McQuillen Interactive Pty. Ltd." },
@@ -24,7 +24,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.13",
