@@ -63,8 +63,8 @@ fmi = ["fmpy>=0.3.20"]
 [project.urls]
 Homepage = "https://validibot.com"
 Documentation = "https://docs.validibot.com"
-Repository = "https://github.com/validibot/validibot-validators"
-Issues = "https://github.com/validibot/validibot-validators/issues"
+Repository = "https://github.com/danielmcquillen/validibot-validators"
+Issues = "https://github.com/danielmcquillen/validibot-validators/issues"
 
 # ==== Build system ====
 
