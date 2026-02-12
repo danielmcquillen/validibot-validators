@@ -60,8 +60,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire validators package (includes core, energyplus, and __init__.py)
 COPY validators /app/validators
 
-# Create working directory for EnergyPlus runs
-RUN mkdir -p /tmp/energyplus_run
+# Create non-root user for container execution
+RUN groupadd --gid 1000 validibot \
+    && useradd --uid 1000 --gid 1000 --no-create-home validibot
+
+# Create working directory for EnergyPlus runs (writable by validibot user)
+# Note: when run with read_only=True + tmpfs on /tmp, this directory is
+# recreated on the tmpfs mount, so ownership here is mainly for non-tmpfs usage.
+RUN mkdir -p /tmp/energyplus_run && chown validibot:validibot /tmp/energyplus_run
+
+USER validibot
 
 # Run as a module so relative imports work correctly
 CMD ["python", "-m", "validators.energyplus.main"]

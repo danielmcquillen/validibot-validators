@@ -21,5 +21,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire validators package (includes core, fmi, and __init__.py)
 COPY validators /app/validators
 
+# Create non-root user for container execution
+RUN groupadd --gid 1000 validibot \
+    && useradd --uid 1000 --gid 1000 --no-create-home validibot
+
+USER validibot
+
 # Run as a module so relative imports work correctly
 CMD ["python", "-m", "validators.fmi.main"]
