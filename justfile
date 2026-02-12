@@ -11,9 +11,9 @@
 #   just deploy energyplus dev  # Deploy to dev stage
 #
 # SETUP:
-#   Before using build-push or deploy commands, create your local config:
-#     cp justfile.local.example justfile.local
-#     # Edit justfile.local with your registry details
+#   Before using build-push or deploy commands, create a .env file:
+#     cp .env.example .env
+#     # Edit .env with your GCP project and region
 #
 # DEPLOYMENT:
 #   This justfile handles the full deployment lifecycle. You can also use
@@ -27,14 +27,16 @@
 
 set shell := ["bash", "-cu"]
 
+# Load .env file if present (optional — vars can also be set via environment)
+set dotenv-load
+
 # =============================================================================
 # Configuration
 # =============================================================================
 
-# GCP settings - configure via environment variables or command line:
+# GCP settings - loaded from .env, environment variables, or command line:
+#   cp .env.example .env        # then edit with your values
 #   export VALIDIBOT_GCP_PROJECT=my-project
-#   export VALIDIBOT_GCP_REGION=us-central1
-# Or:
 #   just --set gcp_project "my-project" deploy energyplus dev
 gcp_project := env("VALIDIBOT_GCP_PROJECT", "")
 gcp_region := env("VALIDIBOT_GCP_REGION", "us-central1")
