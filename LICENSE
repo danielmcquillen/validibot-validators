@@ -59,6 +59,31 @@ validators interact with.
 
 ---
 
+## Assumption of Risk
+
+This software executes user-supplied files (building energy models, Functional
+Mock-up Units, and other data) using third-party simulation tools inside Docker
+containers. By using this software, you acknowledge and agree that:
+
+- **You are solely responsible** for the security of your deployment, including
+  container configuration, network isolation, access controls, and infrastructure.
+- **You are solely responsible** for any files you submit for validation. The
+  authors make no guarantee that container isolation will prevent all adverse
+  effects from malicious or malformed input.
+- **You are solely responsible** for any costs incurred through cloud
+  infrastructure (compute, storage, network, etc.) when deploying this software.
+- **You are solely responsible** for the handling, storage, and confidentiality
+  of your data, including any files uploaded for validation.
+- **Simulation and validation results are approximations only.** Results must be
+  independently verified before use in any critical, safety-related, or
+  regulatory application. The authors accept no liability for decisions made
+  based on outputs from this software.
+
+This section supplements — and does not limit — the warranty disclaimer and
+limitation of liability in the MIT License above.
+
+---
+
 ## Trademarks
 
 "Validibot", the Validibot logo, and the Validibot robot character are trademarks

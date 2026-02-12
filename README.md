@@ -66,6 +66,17 @@ After running validation, the container writes an output envelope with:
 - **Metrics** — Numeric results (e.g., EUI for building models)
 - **Artifacts** — Generated files (reports, logs, etc.)
 
+## Important Disclaimers
+
+> [!CAUTION]
+> **Code execution:** Validator containers execute user-supplied files (IDF building models, FMU binaries, etc.) using third-party tools. While containers provide isolation, no guarantee is made regarding safety, security, or resource consumption. You are responsible for reviewing files before running them.
+>
+> **Cloud costs:** Cloud deployments (GCP Cloud Run, etc.) incur charges for compute, storage, and network. The authors are not liable for any costs incurred.
+>
+> **Data handling:** Input files are transmitted to and stored in your configured storage backend (GCS, local filesystem). You are responsible for the confidentiality and handling of your data.
+>
+> **No warranty for results:** Simulation and validation results (e.g., EnergyPlus energy metrics) are approximations only. Results should be independently verified before use in critical applications. See the [LICENSE](LICENSE) for full warranty disclaimer.
+
 ## Quick Start
 
 ### Prerequisites
