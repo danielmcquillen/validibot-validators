@@ -32,6 +32,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --extra dev
 
+      - name: Audit dependencies
+        run: uv run pip-audit
+
       - name: Lint
         run: uv run ruff check .
 
