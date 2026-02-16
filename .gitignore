@@ -61,6 +61,13 @@ tmp/
 temp/
 *.tmp
 
+# Security — never commit secrets or key material
+*.pem
+*.p12
+credentials.json
+service-account.json
+db.sqlite3
+
 # Environment files (secrets)
 .env
 .env.*
