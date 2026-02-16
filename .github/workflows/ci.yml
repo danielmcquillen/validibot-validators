@@ -33,7 +33,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Audit dependencies
-        run: uv run pip-audit
+        run: uvx pip-audit
 
       - name: Lint
         run: uv run ruff check .
