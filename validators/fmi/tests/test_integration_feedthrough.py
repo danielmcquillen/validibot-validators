@@ -21,14 +21,18 @@ import pytest
 
 from validators.fmi import runner
 from validibot_shared.fmi.envelopes import FMIInputEnvelope, FMIInputs, FMIOutputs
-from validibot_shared.validations.envelopes import ExecutionContext, InputFileItem, SupportedMimeType
+from validibot_shared.validations.envelopes import (
+    ExecutionContext,
+    InputFileItem,
+    SupportedMimeType,
+)
 
 
 def _is_apple_silicon() -> bool:
     """Check if running on Apple Silicon (ARM64 macOS)."""
-    return (
-        platform.system().lower() == "darwin"
-        and platform.machine().lower() in ("arm64", "aarch64")
+    return platform.system().lower() == "darwin" and platform.machine().lower() in (
+        "arm64",
+        "aarch64",
     )
 
 

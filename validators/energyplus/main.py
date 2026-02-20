@@ -85,9 +85,7 @@ def main() -> int:
             artifacts, raw_outputs = _upload_outputs(work_dir, execution_bundle_uri)
             outputs = _rewrite_output_paths(outputs, artifacts)
         except Exception:
-            logger.exception(
-                "Failed to upload EnergyPlus outputs; continuing without artifacts"
-            )
+            logger.exception("Failed to upload EnergyPlus outputs; continuing without artifacts")
 
         finished_at = datetime.now(UTC)
 

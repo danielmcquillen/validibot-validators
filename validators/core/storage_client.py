@@ -17,13 +17,9 @@ import json
 import logging
 import shutil
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 
-
-if TYPE_CHECKING:
-    pass
 
 logger = logging.getLogger(__name__)
 
@@ -232,9 +228,7 @@ def upload_file(source: Path, uri: str, content_type: str | None = None) -> None
     else:
         raise ValueError(f"Unsupported URI scheme: {scheme}")
 
-    logger.info(
-        "Successfully uploaded file to %s (%d bytes)", uri, source.stat().st_size
-    )
+    logger.info("Successfully uploaded file to %s (%d bytes)", uri, source.stat().st_size)
 
 
 def upload_directory(

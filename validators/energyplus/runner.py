@@ -74,16 +74,10 @@ def run_energyplus_simulation(
     # Collect output file paths
     err_path = work_dir / "eplusout.err" if (work_dir / "eplusout.err").exists() else None
     outputs = EnergyPlusSimulationOutputs(
-        eplusout_sql=work_dir / "eplusout.sql"
-        if (work_dir / "eplusout.sql").exists()
-        else None,
+        eplusout_sql=work_dir / "eplusout.sql" if (work_dir / "eplusout.sql").exists() else None,
         eplusout_err=err_path,
-        eplusout_csv=work_dir / "eplusout.csv"
-        if (work_dir / "eplusout.csv").exists()
-        else None,
-        eplusout_eso=work_dir / "eplusout.eso"
-        if (work_dir / "eplusout.eso").exists()
-        else None,
+        eplusout_csv=work_dir / "eplusout.csv" if (work_dir / "eplusout.csv").exists() else None,
+        eplusout_eso=work_dir / "eplusout.eso" if (work_dir / "eplusout.eso").exists() else None,
     )
 
     # Extract metrics from SQL database
@@ -360,18 +354,12 @@ def _log_sql_errors(cursor: sqlite3.Cursor) -> None:
         for row in rows:
             data = {columns[i]: row[i] for i in range(len(columns))}
             severity = str(
-                data.get("Severity")
-                or data.get("ErrorType")
-                or data.get("Level")
-                or ""
+                data.get("Severity") or data.get("ErrorType") or data.get("Level") or ""
             ).lower()
             if severity == "info":
                 continue
             message = str(
-                data.get("Message")
-                or data.get("ErrorMessage")
-                or data.get("Text")
-                or row
+                data.get("Message") or data.get("ErrorMessage") or data.get("Text") or row
             )
             context = data.get("Context") or data.get("Context1") or data.get("Context2")
             logger.warning(

@@ -11,12 +11,14 @@ All functions are re-exported from storage_client.py.
 from __future__ import annotations
 
 # Re-export all functions from storage_client for backwards compatibility
-from validators.core.storage_client import download_envelope
-from validators.core.storage_client import download_file
-from validators.core.storage_client import parse_gcs_uri
-from validators.core.storage_client import upload_directory
-from validators.core.storage_client import upload_envelope
-from validators.core.storage_client import upload_file
+from validators.core.storage_client import (
+    download_envelope,
+    download_file,
+    parse_gcs_uri,
+    upload_directory,
+    upload_envelope,
+    upload_file,
+)
 
 
 __all__ = [

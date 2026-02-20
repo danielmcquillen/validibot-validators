@@ -9,4 +9,3 @@ Minimal Cloud Run Job container for FMI validators. It:
 
 The container mirrors the contract defined in `validibot_shared.fmi.envelopes`.
 Use the Django launcher to provide catalog-keyed inputs and callback info.
-

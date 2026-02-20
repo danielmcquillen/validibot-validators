@@ -54,9 +54,7 @@ def post_callback(
         httpx.HTTPStatusError: If callback request fails
     """
     if skip_callback:
-        logger.info(
-            "Skipping callback for run_id=%s (skip_callback=True)", run_id
-        )
+        logger.info("Skipping callback for run_id=%s (skip_callback=True)", run_id)
         return None
 
     if not callback_url:
