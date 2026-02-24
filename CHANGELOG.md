@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-02-25
+
 ### Changed
 
 - **BREAKING**: Renamed `validators/fmi/` directory to `validators/fmu/`
@@ -15,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Validator type: `"FMI"` -> `"FMU"`
   - Updated imports to use `validibot_shared.fmu` (requires validibot-shared >= 0.3.0)
   - Justfile, pyproject.toml, and test paths updated accordingly
+
+## [0.2.1] - 2026-02-16
 
 ### Added
 
