@@ -326,19 +326,135 @@ def _extract_metrics(sql_path: Path | None) -> EnergyPlusSimulationMetrics:
             if electricity >= 0 and building_area > 0:
                 eui = electricity / building_area
 
+            # Window envelope metrics from output variables (not tabular data).
+            # These require Output:Variable objects in the IDF; if absent the
+            # ReportDataDictionary won't have matching rows and we get None.
+            window_heat_gain = _fetch_output_variable_sum(
+                cursor,
+                "Surface Window Heat Gain Energy",
+            )
+            window_heat_loss = _fetch_output_variable_sum(
+                cursor,
+                "Surface Window Heat Loss Energy",
+            )
+            window_transmitted_solar = _fetch_output_variable_sum(
+                cursor,
+                "Surface Window Transmitted Solar Radiation Energy",
+            )
+
             _log_sql_errors(cursor)
 
     except Exception as exc:  # pragma: no cover - defensive, metrics best-effort
         logger.warning("Failed to extract metrics from SQL: %s", exc)
+        window_heat_gain = None
+        window_heat_loss = None
+        window_transmitted_solar = None
 
     metrics = EnergyPlusSimulationMetrics()
     if electricity >= 0:
-        metrics.electricity_kwh = electricity
+        metrics.site_electricity_kwh = electricity
     if gas >= 0:
-        metrics.natural_gas_kwh = gas
+        metrics.site_natural_gas_kwh = gas
     if eui >= 0:
-        metrics.energy_use_intensity_kwh_m2 = eui
+        metrics.site_eui_kwh_m2 = eui
+    if window_heat_gain is not None:
+        metrics.window_heat_gain_kwh = window_heat_gain
+    if window_heat_loss is not None:
+        metrics.window_heat_loss_kwh = window_heat_loss
+    if window_transmitted_solar is not None:
+        metrics.window_transmitted_solar_kwh = window_transmitted_solar
     return metrics
+
+
+# Preferred reporting frequency order for output variable summation.
+# "Run Period" gives a single annual total per key and avoids summing
+# thousands of timestep rows.  We pick exactly one frequency to avoid
+# double-counting when an IDF requests the same variable at multiple
+# frequencies (each gets a separate ReportDataDictionaryIndex).
+_FREQUENCY_PREFERENCE = [
+    "Run Period",
+    "Monthly",
+    "Daily",
+    "Hourly",
+    "Zone Timestep",
+    "HVAC System Timestep",
+]
+
+# Joules → kWh conversion factor
+_J_TO_KWH = 1.0 / 3_600_000.0
+
+
+def _fetch_output_variable_sum(
+    cursor: sqlite3.Cursor,
+    variable_name: str,
+) -> float | None:
+    """
+    Sum an EnergyPlus output variable across all key values (surfaces) for
+    the annual run period, converting Joules to kWh.
+
+    EnergyPlus stores output variable data in two tables:
+    - ReportDataDictionary: maps variable name + key + frequency → index
+    - ReportData: stores timestep values keyed by that index
+
+    Each reporting frequency requested in the IDF creates a *separate*
+    dictionary entry.  To avoid double-counting we pick exactly one
+    frequency, preferring "Run Period" (already annual) and falling back
+    to finer granularities.
+
+    Returns None if the variable was not requested in the IDF (no matching
+    dictionary entries).
+    """
+    # Check whether the ReportDataDictionary table exists at all
+    table_check = cursor.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='ReportDataDictionary'",
+    ).fetchone()
+    if not table_check:
+        return None
+
+    # Find all frequencies available for this variable
+    freq_rows = cursor.execute(
+        """
+        SELECT DISTINCT ReportingFrequency
+        FROM ReportDataDictionary
+        WHERE Name = ? AND IsMeter = 0
+        """,
+        (variable_name,),
+    ).fetchall()
+
+    if not freq_rows:
+        return None
+
+    available = {r[0] for r in freq_rows}
+
+    # Pick exactly one frequency (best available)
+    chosen = None
+    for pref in _FREQUENCY_PREFERENCE:
+        if pref in available:
+            chosen = pref
+            break
+    if chosen is None:
+        # Unknown frequency string — pick first available as last resort
+        chosen = next(iter(available))
+
+    # Sum values across all key values (surfaces) for the chosen frequency
+    result = cursor.execute(
+        """
+        SELECT SUM(rd.Value)
+        FROM ReportData rd
+        JOIN ReportDataDictionary rdd
+          ON rd.ReportDataDictionaryIndex = rdd.ReportDataDictionaryIndex
+        WHERE rdd.Name = ?
+          AND rdd.ReportingFrequency = ?
+          AND rdd.IsMeter = 0
+        """,
+        (variable_name, chosen),
+    ).fetchone()
+
+    if result is None or result[0] is None:
+        return None
+
+    total_joules = float(result[0])
+    return total_joules * _J_TO_KWH
 
 
 def _log_sql_errors(cursor: sqlite3.Cursor) -> None:

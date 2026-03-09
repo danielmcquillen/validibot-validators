@@ -171,10 +171,6 @@ def main() -> int:
         )
 
 
-if __name__ == "__main__":
-    sys.exit(main())
-
-
 # ---------------------------------------------------------------------------
 # Output helpers
 # ---------------------------------------------------------------------------
@@ -332,3 +328,7 @@ def _handle_failure(
 
     logger.info("Published failure envelope for run_id=%s", input_envelope.run_id)
     return exit_code
+
+
+if __name__ == "__main__":
+    sys.exit(main())

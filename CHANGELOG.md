@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-03-10
+
+### Added
+
+- **Window envelope metric extraction** — the EnergyPlus validator now extracts
+  `window_heat_gain_kwh`, `window_heat_loss_kwh`, and `window_transmitted_solar_kwh`
+  from the `ReportData`/`ReportDataDictionary` tables in `eplusout.sql`. These
+  correspond to the `Surface Window Heat Gain Energy`, `Surface Window Heat Loss
+  Energy`, and `Surface Window Transmitted Solar Radiation Energy` output variables.
+  Values are summed across all surfaces, converted from J to kWh, and returned as
+  `None` when the corresponding `Output:Variable` objects are not present in the IDF.
+  Uses frequency-aware extraction (preferring "Run Period" data) to avoid
+  double-counting when an IDF requests the same variable at multiple frequencies.
+  Requires validibot-shared >= 0.3.1.
+
 ## [0.3.1] - 2026-03-09
 
 ### Fixed
