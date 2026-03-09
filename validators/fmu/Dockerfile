@@ -18,12 +18,14 @@ ENV PYTHONPATH="/app:${PYTHONPATH}"
 COPY validators/fmu/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire validators package (includes core, fmu, and __init__.py)
-COPY validators /app/validators
-
 # Create non-root user for container execution
 RUN groupadd --gid 1000 validibot \
     && useradd --uid 1000 --gid 1000 --no-create-home validibot
+
+# Copy the entire validators package (includes core, fmu, and __init__.py)
+# --chown ensures files are readable by the non-root user (UID 1000) when the
+# Docker runner launches the container with user=1000:1000 and read_only=True.
+COPY --chown=validibot:validibot validators /app/validators
 
 USER validibot
 

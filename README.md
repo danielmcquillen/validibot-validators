@@ -408,18 +408,27 @@ Edit `validators/myvalidator/Dockerfile` to install your dependencies:
 FROM python:3.13-slim
 
 WORKDIR /app
+ENV PYTHONPATH="/app:${PYTHONPATH}"
 
 # Install your domain-specific tools
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     your-tool \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+COPY validators/myvalidator/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Create non-root user BEFORE copying code so --chown works.
+# The core platform runs containers with user=1000:1000 and read_only=True,
+# so files must be owned by UID 1000.
+RUN groupadd --gid 1000 validibot \
+    && useradd --uid 1000 --gid 1000 --no-create-home validibot
 
-ENTRYPOINT ["python", "-m", "validators.myvalidator.main"]
+COPY --chown=validibot:validibot validators /app/validators
+
+USER validibot
+
+CMD ["python", "-m", "validators.myvalidator.main"]
 ```
 
 ### 6. Build and Test

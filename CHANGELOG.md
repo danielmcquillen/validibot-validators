@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-03-09
+
+### Fixed
+
+- **Container permission error when run as non-root user** — Dockerfiles now
+  create the `validibot` user (UID 1000) before copying application files and
+  use `COPY --chown=validibot:validibot` to ensure the code is readable.
+  Previously, files were copied as root with mode 600, causing
+  `PermissionError` when the core platform's Docker runner launched containers
+  with `user=1000:1000` and `read_only=True` (security hardening added in
+  validibot v0.x, Feb 2026).
+
 ## [0.3.0] - 2026-02-25
 
 ### Changed
