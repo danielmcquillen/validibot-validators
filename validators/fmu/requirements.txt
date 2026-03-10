@@ -6,5 +6,6 @@ google-auth>=2.0.0
 defusedxml>=0.7.1
 fmpy>=0.3.16
 
-# Shared envelopes/models
-validibot-shared
+# Validibot shared library (from PyPI)
+# Pin exact version to bust Docker layer cache on upgrades.
+validibot-shared>=0.3.1

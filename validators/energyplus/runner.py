@@ -256,6 +256,9 @@ def _extract_metrics(sql_path: Path | None) -> EnergyPlusSimulationMetrics:
     gas = -1.0
     eui = -1.0
     building_area = -1.0
+    heating_gj = -1.0
+    cooling_gj = -1.0
+    _GJ_TO_KWH = 277.778
 
     try:
         with sqlite3.connect(sql_path) as conn:
@@ -268,34 +271,27 @@ def _extract_metrics(sql_path: Path | None) -> EnergyPlusSimulationMetrics:
                 row: str,
                 column: str,
             ) -> float:
-                # Prefer the joined view (matches EnergyPlus default schema)
-                query_joined = """
-                    SELECT td.Value AS metric_value
-                    FROM TabularData td
-                    JOIN TabularDataWithStrings tds
-                      ON td.ReportName = tds.ReportName
-                     AND td.TableName = tds.TableName
-                     AND td.RowName = tds.RowName
-                     AND td.ColumnName = tds.ColumnName
-                    WHERE td.ReportName = ?
-                      AND td.TableName = ?
-                      AND td.RowName = ?
-                      AND td.ColumnName = ?
-                    LIMIT 1
+                """Fetch a single value from TabularDataWithStrings.
+
+                EnergyPlus 25.x stores tabular data with integer foreign keys
+                in ``TabularData`` and provides a convenience view
+                ``TabularDataWithStrings`` that resolves them.  Column names
+                in the view do NOT include units (e.g. ``"Electricity"``
+                rather than ``"Electricity [kWh]"``).  Energy values are in
+                GJ; callers must convert to kWh when needed.
                 """
-                params = (report, table, row, column)
-                result = cursor.execute(query_joined, params).fetchone()
-                if not result:
-                    # Fallback to TabularData only
-                    result = cursor.execute(
-                        """
-                        SELECT Value AS metric_value
-                        FROM TabularData
-                        WHERE ReportName=? AND TableName=? AND RowName=? AND ColumnName=?
-                        LIMIT 1
-                        """,
-                        params,
-                    ).fetchone()
+                result = cursor.execute(
+                    """
+                    SELECT Value AS metric_value
+                    FROM TabularDataWithStrings
+                    WHERE ReportName = ?
+                      AND TableName = ?
+                      AND RowName = ?
+                      AND ColumnName = ?
+                    LIMIT 1
+                    """,
+                    (report, table, row, column),
+                ).fetchone()
                 if not result:
                     return -1.0
                 try:
@@ -303,18 +299,46 @@ def _extract_metrics(sql_path: Path | None) -> EnergyPlusSimulationMetrics:
                 except Exception:
                     return -1.0
 
-            electricity = fetch_tabular_metric(
+            def _sum_end_use_row(row_name: str) -> float:
+                """Sum all energy fuel columns for an End Uses row (in GJ).
+
+                The End Uses table has separate columns per fuel type
+                (Electricity, Natural Gas, District Cooling, District
+                Heating Water, etc.).  For a total we sum all energy
+                columns, excluding Water (m3).
+                """
+                result = cursor.execute(
+                    """
+                    SELECT SUM(CAST(Value AS REAL)) AS total_gj
+                    FROM TabularDataWithStrings
+                    WHERE ReportName = 'AnnualBuildingUtilityPerformanceSummary'
+                      AND TableName = 'End Uses'
+                      AND RowName = ?
+                      AND Units = 'GJ'
+                    """,
+                    (row_name,),
+                ).fetchone()
+                if not result or result["total_gj"] is None:
+                    return -1.0
+                return float(result["total_gj"])
+
+            # Total site energy by fuel type (GJ → kWh).
+            elec_gj = fetch_tabular_metric(
                 "AnnualBuildingUtilityPerformanceSummary",
                 "End Uses",
                 "Total End Uses",
-                "Electricity [kWh]",
+                "Electricity",
             )
-            gas = fetch_tabular_metric(
+            gas_gj = fetch_tabular_metric(
                 "AnnualBuildingUtilityPerformanceSummary",
                 "End Uses",
                 "Total End Uses",
-                "Natural Gas [kWh]",
+                "Natural Gas",
             )
+            if elec_gj >= 0:
+                electricity = elec_gj * _GJ_TO_KWH
+            if gas_gj >= 0:
+                gas = gas_gj * _GJ_TO_KWH
 
             building_area = fetch_tabular_metric(
                 "Entire Facility",
@@ -325,6 +349,11 @@ def _extract_metrics(sql_path: Path | None) -> EnergyPlusSimulationMetrics:
 
             if electricity >= 0 and building_area > 0:
                 eui = electricity / building_area
+
+            # End-use breakdown — sum ALL fuel columns per category so
+            # IdealLoadsAirSystem district heating/cooling is included.
+            heating_gj = _sum_end_use_row("Heating")
+            cooling_gj = _sum_end_use_row("Cooling")
 
             # Window envelope metrics from output variables (not tabular data).
             # These require Output:Variable objects in the IDF; if absent the
@@ -346,6 +375,8 @@ def _extract_metrics(sql_path: Path | None) -> EnergyPlusSimulationMetrics:
 
     except Exception as exc:  # pragma: no cover - defensive, metrics best-effort
         logger.warning("Failed to extract metrics from SQL: %s", exc)
+        heating_gj = -1.0
+        cooling_gj = -1.0
         window_heat_gain = None
         window_heat_loss = None
         window_transmitted_solar = None
@@ -357,6 +388,10 @@ def _extract_metrics(sql_path: Path | None) -> EnergyPlusSimulationMetrics:
         metrics.site_natural_gas_kwh = gas
     if eui >= 0:
         metrics.site_eui_kwh_m2 = eui
+    if heating_gj >= 0:
+        metrics.heating_energy_kwh = heating_gj * _GJ_TO_KWH
+    if cooling_gj >= 0:
+        metrics.cooling_energy_kwh = cooling_gj * _GJ_TO_KWH
     if window_heat_gain is not None:
         metrics.window_heat_gain_kwh = window_heat_gain
     if window_heat_loss is not None:
