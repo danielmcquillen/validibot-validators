@@ -57,7 +57,11 @@ def run_fmu_simulation(input_envelope: FMUInputEnvelope) -> tuple[FMUOutputs, Pa
     sim_cfg = input_envelope.inputs.simulation
     requested_outputs = input_envelope.inputs.output_variables or []
     if not requested_outputs:
-        requested_outputs = _discover_output_variables(md)
+        # Fallback: discover output variables from the parsed model
+        # description dict.  Use _extract_output_variables (which accepts
+        # a dict) rather than the backward-compat shim
+        # _discover_output_variables (which expects a Path).
+        requested_outputs = _extract_output_variables(md)
 
     start_values = dict(input_envelope.inputs.input_values or {})
     log_messages: list[str] = []
