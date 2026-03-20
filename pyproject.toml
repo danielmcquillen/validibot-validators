@@ -2,7 +2,7 @@
 
 [project]
 name = "validibot-validators"
-version = "0.4.0"
+version = "0.4.1"
 description = "Validibot advanced validator containers (EnergyPlus, FMU)"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -40,7 +40,7 @@ dependencies = [
     "google-auth>=2.43.0",
     "requests>=2.32.0",
     "sentry-sdk>=2.47.0",
-    "validibot-shared",
+    "validibot-shared>=0.4.1",
 ]
 
 [project.optional-dependencies]
@@ -65,6 +65,11 @@ Homepage = "https://validibot.com"
 Documentation = "https://docs.validibot.com"
 Repository = "https://github.com/danielmcquillen/validibot-validators"
 Issues = "https://github.com/danielmcquillen/validibot-validators/issues"
+
+[tool.uv.sources]
+# validibot-shared: Prefer the sibling checkout during coordinated local
+# development so validators are tested against the current shared contract.
+validibot-shared = { path = "../validibot-shared", editable = true }
 
 # ==== Build system ====
 

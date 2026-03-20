@@ -120,7 +120,7 @@ just --list
 
 ```bash
 # Install dev dependencies
-uv sync --extra dev
+uv sync --extra dev --extra fmu
 
 # Run all tests
 just test
@@ -492,7 +492,7 @@ git clone https://github.com/danielmcquillen/validibot-validators.git
 cd validibot-validators
 
 # Install dependencies
-uv sync --extra dev
+uv sync --extra dev --extra fmu
 
 # Run linter
 uv run ruff check .
@@ -501,7 +501,7 @@ uv run ruff check .
 uv run mypy validators/
 
 # Run tests
-uv run pytest
+uv run --extra fmu pytest
 ```
 
 ## Acknowledgments

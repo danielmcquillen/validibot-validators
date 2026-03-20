@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-03-20
+
+### Fixed
+
+- `just test` and `just test-validator` now run with the FMU extra so the
+  default test workflow works on a clean checkout.
+- Validators now require `validibot-shared>=0.4.1` and use the sibling
+  checkout as the local uv source during coordinated development.
+- Updated the README setup commands to install the FMU test dependencies.
+
 ## [0.4.0] - 2026-03-20
 
 ### Changed

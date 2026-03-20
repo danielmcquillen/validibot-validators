@@ -64,11 +64,11 @@ validators := "energyplus fmu"
 
 # Run all tests
 test *args:
-    uv run pytest {{args}}
+    uv run --extra dev --extra fmu pytest {{args}}
 
 # Run tests for a specific validator
 test-validator validator:
-    uv run pytest validators/{{validator}}/tests
+    uv run --extra dev --extra fmu pytest validators/{{validator}}/tests
 
 # Lint all code
 lint:
